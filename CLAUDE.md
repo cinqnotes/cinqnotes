@@ -108,13 +108,33 @@ Ce qu'on ne construit **pas**, et pourquoi. À rappeler si une demande dérive v
 
 | Anti-objectif | Motif |
 |---|---|
-| Détection audio ou MIDI du jeu de l'utilisateur | C'est le fossé technique des acteurs à 200 M$ d'ARR. Coût énorme, aucun avantage possible en solo. |
+| **Évaluation** du jeu de l'utilisateur — note juste ou fausse, score, correction, « tu as raté la mesure 4 » | C'est le fossé technique des acteurs à 200 M$ d'ARR. Coût énorme, aucun avantage possible en solo. |
 | Bibliothèque de morceaux avec partitions | Droits d'auteur et d'édition. Cf. I4. |
 | Application mobile native | Pas avant que les seuils de la phase 1 soient franchis. Un site responsive suffit à valider. |
 | Gamification (points, badges, ligues) | Le segment visé est un adulte autodidacte, pas un enfant. Ça abîmerait le positionnement. |
 | Multi-instruments | Diluerait la seule chose qui différencie le produit. |
-| Stockage vidéo serveur | Cf. I3. |
-| IA générative de « feedback sur ton jeu » | Sans détection audio, ce serait du vent. Avec, cf. ligne 1. |
+| Capture **vidéo**, et a fortiori stockage vidéo serveur | Cf. I3 — le motif est l'exposition RGPD sur des vidéos de personnes filmées chez elles. Et la vidéo n'apporte que la position des mains, ce qui ne sert que si quelqu'un la corrige : usage de professeur, donc hors périmètre. |
+| IA générative de « feedback sur ton jeu » | Sans évaluation, ce serait du vent. Avec, cf. ligne 1. |
+
+### Capter n'est pas évaluer
+
+Cette ligne s'appelait « détection audio ou MIDI du jeu de l'utilisateur ». Lue à la lettre, elle
+interdisait d'enregistrer quoi que ce soit. Or le motif écrit à côté — le fossé technique — ne
+décrit que l'**évaluation** : juger si la note est la bonne, au bon moment, avec quelle tolérance.
+
+| | Autorisé | Interdit |
+|---|---|---|
+| **Captation** | Enregistrer le flux audio ou MIDI tel quel | — |
+| **Description** | « Tu es resté dans la pentatonique », « tes phrases durent 2 mesures », « tu as utilisé 5 notes sur 12 » | — |
+| **Évaluation** | — | « Cette note est fausse », un score, une correction, une comparaison à une référence |
+
+Enregistrer un flux MIDI est une liste d'événements `(note, vélocité, horodatage)` : une centaine de
+lignes, aucun modèle, aucun fossé à franchir. L'analyse **descriptive** qui en découle est le
+carburant du séquencement adaptatif (§8 phase 3) et ne juge rien.
+
+**La pente à surveiller :** une fois le MIDI en main, la tentation d'ajouter « tu as joué 3 fausses
+notes » sera forte. C'est exactement l'anti-objectif. Toute fonctionnalité qui compare le jeu de
+l'utilisateur à une référence attendue est refusée, quelle que soit sa simplicité apparente.
 
 ---
 
@@ -305,28 +325,65 @@ Ce qui se vend, c'est la boucle quotidienne (D9), et la ligne passe à la mémoi
 
 ### Phase 3 — Capture et montage mensuel
 
-1. Enregistrement audio via `MediaRecorder`, rattaché au bloc de séance en cours.
+**L'audio est le plancher, le MIDI est le bonus. La vidéo est hors périmètre** (cf. §4).
+
+1. Enregistrement audio via `MediaRecorder` (Opus, ~5 Mo pour 20 min), rattaché au bloc en cours.
+   Marche pour tout le monde — piano acoustique ou numérique, sur tous les appareils, sans câble.
+   C'est le seul chemin qui couvre 100 % de l'audience, donc c'est celui qui porte la fonctionnalité.
 2. Stockage local (IndexedDB / OPFS), quota surveillé, purge explicite par l'utilisateur.
-3. Vidéo optionnelle, même traitement, jamais activée par défaut (I3).
+3. **Captation MIDI optionnelle**, proposée seulement si `navigator.requestMIDIAccess()` détecte un
+   appareil. 20 à 60 Ko pour 20 min, aucune donnée personnelle — ni image, ni voix, ni bruit de fond.
+   Débloque pour ces utilisateurs : rejeu de l'impro sur le clavier animé, statistiques descriptives
+   de notes, et un montage reproductible (même son au mois 1 et au mois 3, donc la comparaison porte
+   sur le jeu et non sur la qualité du micro).
+   → **À vérifier au moment d'implémenter :** le support de Web MIDI dans Safari. S'il manque encore,
+   tout iOS est exclu (tous les navigateurs y sont WebKit) — raison de plus pour que l'audio porte
+   la fonctionnalité et que le MIDI reste un supplément.
+   → Captation et description seulement, jamais d'évaluation (§4).
 4. **Montage mensuel** généré côté client : `ffmpeg.wasm` ou WebCodecs, assemblant les extraits du
    mois avec date et tonalité travaillée. Export en fichier, partage à l'initiative de l'utilisateur.
 5. Écran « il y a 3 mois / aujourd'hui » sur le même exercice — le mécanisme avant/après.
+6. **Séquencement adaptatif**, à partir de l'historique de blocs cochés — pas du contenu audio :
+   « tu évites Fa et Si♭ depuis six semaines, ce sont les deux gammes au doigté différent »,
+   « ton bloc Impro est coché 40 % du temps contre 85 % pour la technique ».
+   C'est la couche qui transforme un suivi en produit, et elle ne demande aucune détection.
 
 C'est la fonctionnalité de réengagement et le principal levier de partage. Elle ne se construit
 qu'une fois la rétention prouvée : sans retour quotidien, il n'y a rien à monter.
+
+> **Si un upload serveur devait exister un jour** (ce n'est pas prévu, I3 dit local par défaut) :
+> URL présignée directement vers du stockage objet (R2, S3). Jamais à travers l'API Go — sinon la
+> bande passante est payée deux fois et le VPS devient le goulot.
 
 ---
 
 ### Phase 4 — Monétisation
 
-1. Stripe Billing, mensuel et annuel. Fourchette 12-15 €/mois — positionnement haut, cible étroite.
+**Ne pas miser sur l'abonnement seul.** Deux sources à court terme, dans cet ordre d'arrivée.
+
+**Source 1 — un parcours borné payant.** « 90 jours pour improviser », 90 à 150 €, achat unique.
+Convertit tôt, correspond à la façon dont le marché francophone du piano achète réellement, et ne
+demande pas d'atteindre un seuil d'abonnés maintenus. C'est la première chose à tester.
+
+**Source 2 — l'abonnement**, pour l'outil continu. **6 à 8 €/mois**, et non 12-15 comme envisagé
+initialement : sur un segment autodidacte, on vise la durée d'abonnement, pas la marge unitaire, et
+un prix bas réduit la friction d'entrée.
+
+1. Stripe Billing, mensuel et annuel.
 2. Essai de 14 jours (les essais longs convertissent mieux dans l'éducation, où l'utilisateur a
    besoin de plusieurs sessions pour évaluer).
 3. Portail client, résiliation en un clic (I5).
-4. **À évaluer en parallèle :** les acteurs francophones du secteur vendent des formations bornées
-   (150-300 €) et de l'accompagnement humain, pas des abonnements. Une formation se vend à 30
-   personnes ; un abonnement à 8 €/mois en demande 350 pour le même revenu. Tester une offre
-   « parcours 90 jours » avant de s'engager sur l'abonnement seul.
+
+**L'arithmétique, pour ne pas la refaire :** à 12 €/mois, dégager 1 000 €/mois net demande environ
+**130 abonnés payants simultanés**, churn compris — soit, à 3-5 % de conversion, plusieurs milliers
+de visiteurs engagés, donc 12 à 18 mois de SEO. Un parcours à 120 € vendu 100 fois rapporte
+12 000 € et atteindre 100 ventes est nettement plus accessible que maintenir 130 abonnés. C'est
+aussi pourquoi deux applications à abonnement en solo ne tiennent pas (§10, arbitrage Papyrus).
+
+**Le canal enseignants reste en phase 5.** Son économie est la meilleure des trois — un professeur
+amène quinze élèves, et la pédagogie se trouve co-signée par quelqu'un dont c'est le métier, ce qui
+règlerait §10. Décision de l'auteur : c'est une amélioration de très long terme, on ne la remonte
+pas dans le plan. À rouvrir si la conversion des sources 1 et 2 déçoit.
 
 ---
 
@@ -356,6 +413,10 @@ qu'une fois la rétention prouvée : sans retour quotidien, il n'y a rien à mon
 | D10 | Le générateur d'impro est le point d'entrée du tunnel, la routine est la couche de rétention | Le trafic froid n'est pas assis devant un piano. Une routine seule n'a rien à offrir à qui découvre le site depuis son téléphone. |
 | D11 | La ligne gratuit/payant passe à la **mémoire dans le temps** | Gratuit et sans limite : la séance du jour entière (blocs, chrono, métronome, doigtés animés, journal) — I5 l'impose. Payant : historique long, statistiques par axe et par tonalité, synchro multi-appareils, enregistrements, montage mensuel, comparaison « il y a 3 mois / aujourd'hui ». C'est aussi la seule part qui coûte réellement à faire tourner, donc la ligne est défendable devant l'utilisateur. |
 | D12 | Le produit ne se présente jamais comme « un tracker de pratique » | Modacity et Tonara occupent déjà cette case, la disposition à payer y est faible, et un tracker nu se remplace par un carnet. L'argument de vente est la **preuve du progrès**, pas la mesure de l'effort. |
+| D13 | La captation est autorisée, l'**évaluation** reste interdite | Le motif de l'anti-objectif (fossé technique à 200 M$ d'ARR) ne décrit que l'évaluation. Enregistrer un flux MIDI coûte cent lignes et ne franchit aucun fossé. Cf. §4, « Capter n'est pas évaluer ». |
+| D14 | Capture : audio pour tous, MIDI en supplément, vidéo jamais | L'audio est le seul chemin qui couvre 100 % de l'audience (pianos acoustiques, iOS). Le MIDI apporte le rejeu et l'analyse descriptive à ceux qui ont le matériel. La vidéo n'apporte que la position des mains — usage de professeur — pour une exposition RGPD disproportionnée (I3). |
+| D15 | Deux sources de revenus, pas une : un parcours borné d'abord, l'abonnement ensuite à 6-8 € | 130 abonnés maintenus est un seuil bien plus dur que 100 ventes uniques, et le marché francophone du piano achète des formations. Cf. §8 phase 4. |
+| D16 | Ce qui justifie l'abonnement n'est pas l'enregistrement, c'est la **mémoire + le séquencement adaptatif** | L'enregistrement seul se remplace par un dictaphone et son effet émotionnel s'émousse. Ce qui ne se remplace pas, c'est un historique long qui sait dire quoi travailler ensuite — et ça se calcule sur des cases cochées, sans aucune détection. |
 
 ---
 
