@@ -1,0 +1,123 @@
+---
+/**
+ * Capture e-mail. La promesse porte sur une FONCTIONNALITÉ, pas sur du contenu :
+ * c'est la conséquence directe de D9 — on ne vend pas le curriculum, donc mesurer
+ * l'appétit pour « la phase 2 du programme » mesurerait la mauvaise chose, et les
+ * seuils de CLAUDE.md §8 phase 1 seraient tranchés sur le mauvais signal.
+ *
+ * L'endpoint n'est pas câblé (choix : le site d'abord). Sans `PUBLIC_EMAIL_ENDPOINT`,
+ * le formulaire remercie localement et n'envoie rien.
+ */
+const endpoint = import.meta.env.PUBLIC_EMAIL_ENDPOINT ?? "";
+---
+
+<section class="capture" aria-labelledby="capture-titre">
+  <h2 id="capture-titre">Le jour où tu pourras t'entendre progresser</h2>
+  <p>
+    La suite, c'est d'enregistrer tes impros depuis la séance, et de recevoir chaque mois un montage
+    de tes extraits — daté, avec la tonalité travaillée. Tu t'entends au mois 1, tu t'entends au mois
+    3, et tu vois ce que trois mois de dix minutes par jour ont produit.
+  </p>
+  <p class="petit">
+    Rien ne part sur un serveur : l'audio reste sur ton appareil, le montage est fabriqué dans ton
+    navigateur.
+  </p>
+
+  <form data-endpoint={endpoint}>
+    <label class="visuellement-cache" for="email">Adresse e-mail</label>
+    <input id="email" name="email" type="email" required placeholder="ton@email.fr" />
+    <button class="bouton principal" type="submit">Préviens-moi</button>
+  </form>
+  <p class="retour" role="status" aria-live="polite"></p>
+</section>
+
+<script>
+  import { mesurer } from "~/lib/mesure";
+
+  const form = document.querySelector<HTMLFormElement>(".capture form");
+  const retour = document.querySelector<HTMLParagraphElement>(".capture .retour");
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = new FormData(form).get("email");
+    const endpoint = form.dataset.endpoint;
+    mesurer("email_submit");
+
+    if (!endpoint) {
+      // Pas encore branché : on ne fait pas semblant d'avoir enregistré.
+      if (retour) retour.textContent = "Collecte pas encore active — reviens bientôt.";
+      return;
+    }
+
+    try {
+      const r = await fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (retour) {
+        retour.textContent = r.ok
+          ? "C'est noté. Tu recevras un seul message, celui-là."
+          : "Ça n'a pas marché. Réessaie dans un moment.";
+      }
+      if (r.ok) form.reset();
+    } catch {
+      if (retour) retour.textContent = "Ça n'a pas marché. Réessaie dans un moment.";
+    }
+  });
+</script>
+
+<style>
+  .capture {
+    border: 1px solid var(--trait);
+    background: var(--caisse);
+    padding: 26px;
+    margin-top: 40px;
+  }
+  .capture h2 {
+    margin-bottom: 10px;
+  }
+  .capture p {
+    color: var(--poussiere);
+    font-size: 14px;
+    max-width: 62ch;
+    margin: 0 0 10px;
+  }
+  .capture .petit {
+    font-size: 12.5px;
+  }
+  form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+  input {
+    flex: 1 1 240px;
+    background: var(--caisse2);
+    border: 1px solid var(--trait);
+    color: var(--ivoire);
+    font-family: var(--texte);
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+  input:hover {
+    border-color: var(--laiton);
+  }
+  .retour {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--laiton);
+    letter-spacing: 0.1em;
+    min-height: 16px;
+    margin-top: 10px;
+  }
+  .visuellement-cache {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+</style>

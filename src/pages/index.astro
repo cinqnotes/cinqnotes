@@ -1,0 +1,218 @@
+---
+import Base from "~/layouts/Base.astro";
+import CaptureEmail from "~/components/CaptureEmail.astro";
+import GenerateurImpro from "~/components/GenerateurImpro.svelte";
+import PlancheDeTravail from "~/components/PlancheDeTravail.svelte";
+import { AMBIANCES, TONALITES_IMPRO } from "~/content/curriculum/grilles";
+import { JOURS_ORDONNES, PHASE_1, dureeDuJour, jour, slugDeJour } from "~/content/curriculum/phase1";
+import { nomDeTonique, toniqueEnSlug } from "~/lib/musique";
+---
+
+<Base
+  titre="Improviser au piano — l'outil de pratique quotidienne pour autodidactes"
+  description="Une grille d'accords, les notes qui ne peuvent pas sonner faux, une contrainte : de quoi improviser dans les trente secondes. Puis une routine quotidienne de 45 minutes, gratuite, sur 18 mois."
+  chemin="/"
+>
+  <section class="wrap accroche">
+    <h1>Tu sais rejouer.<br /><em>Apprends à créer.</em></h1>
+    <p class="chapo">
+      Les applications de piano t'apprennent à reproduire des morceaux, et tu décroches au bout de
+      trois mois — une fois passé le stade « je joue un truc reconnaissable ». Ici, on ne travaille
+      qu'une chose : improviser et composer. Choisis une ambiance, l'outil te donne la grille, les
+      notes sûres et une contrainte. Tu joues.
+    </p>
+  </section>
+
+  <section class="wrap" id="generateur" aria-labelledby="generateur-titre">
+    <h2 id="generateur-titre" class="titre-section">Improvise maintenant</h2>
+    <GenerateurImpro client:load />
+
+    <p class="dessous">
+      Ces grilles ont aussi chacune leur page :
+      {
+        AMBIANCES.map((a, i) => (
+          <>
+            {i > 0 ? ", " : ""}
+            <a href={`/impro/${a.id}-${toniqueEnSlug(9)}`}>{a.nom.toLowerCase()} en La</a>
+          </>
+        ))
+      }.
+    </p>
+  </section>
+
+  <section class="wrap" id="seance" aria-labelledby="seance-titre">
+    <h2 id="seance-titre" class="titre-section">La séance du jour</h2>
+    <p class="chapo">
+      Cinq blocs courts valent mieux qu'une longue session sur un seul axe. Chronomètre par bloc,
+      métronome, doigtés animés, journal. Tout reste sur ton appareil, sans compte.
+    </p>
+    <!-- `client:load` et non `client:idle` : la boucle quotidienne EST le produit
+         (D9). Le contenu est rendu au build de toute façon (I2), mais des cases
+         à cocher qui ne réagissent pas pendant deux secondes coûtent plus cher
+         que les quelques kilo-octets gagnés. -->
+    <PlancheDeTravail client:load jourInitial={1} />
+  </section>
+
+  <section class="wrap" aria-labelledby="semaine-titre">
+    <h2 id="semaine-titre" class="titre-section">La semaine entière, en clair</h2>
+    <p class="chapo">
+      Phase 1 — {PHASE_1.label}, mois {PHASE_1.months[0]} à {PHASE_1.months[1]}. Cinq séances
+      courtes, une séance longue le samedi, un dimanche léger. Le bloc d'improvisation n'est jamais
+      optionnel.
+    </p>
+
+    <table class="semaine">
+      <caption class="visuellement-cache">Les sept jours de la routine de phase 1</caption>
+      <thead>
+        <tr>
+          <th scope="col">Jour</th>
+          <th scope="col">Axe de travail</th>
+          <th scope="col">Tonalité</th>
+          <th scope="col">Durée</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          JOURS_ORDONNES.map((j) => {
+            const d = jour(j)!;
+            return (
+              <tr>
+                <th scope="row">
+                  <a href={`/routine/${slugDeJour(j)}`}>{d.label}</a>
+                </th>
+                <td>{d.focus}</td>
+                <td>{d.keyOfDay ?? "—"}</td>
+                <td>{dureeDuJour(j)} min</td>
+              </tr>
+            );
+          })
+        }
+      </tbody>
+    </table>
+
+    <h3 class="titre-section petit">Ce qui autorise à passer à la phase suivante</h3>
+    <ul class="criteres">
+      {PHASE_1.exitCriteria.map((c) => <li>{c}</li>)}
+    </ul>
+  </section>
+
+  <section class="wrap" aria-labelledby="tonalites-titre">
+    <h2 id="tonalites-titre" class="titre-section">Improviser dans chaque tonalité</h2>
+    <p class="chapo">
+      Six tonalités, quatre ambiances. Chaque page donne la grille, les notes sûres sur le clavier et
+      la contrainte du jour. On ne propose que les tonalités dont le doigté est vérifié : un doigté
+      faux installé six mois fait plus de dégâts qu'une tonalité manquante.
+    </p>
+    <ul class="pages-impro">
+      {
+        AMBIANCES.map((a) => (
+          <li>
+            <span class="etiquette">{a.nom}</span>
+            {TONALITES_IMPRO.map((t, i) => (
+              <>
+                {i > 0 ? " · " : ""}
+                <a href={`/impro/${a.id}-${toniqueEnSlug(t)}`}>{nomDeTonique(t)}</a>
+              </>
+            ))}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <div class="wrap"><CaptureEmail /></div>
+</Base>
+
+<style>
+  .accroche {
+    padding: 44px 20px 18px;
+  }
+  .titre-section {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 28px;
+    margin: 48px 0 10px;
+  }
+  .titre-section.petit {
+    font-size: 20px;
+    margin-top: 34px;
+  }
+  .dessous {
+    font-size: 13px;
+    color: var(--poussiere);
+    margin-top: 14px;
+  }
+
+  .semaine {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+    font-size: 14px;
+  }
+  .semaine th,
+  .semaine td {
+    text-align: left;
+    padding: 12px 14px 12px 0;
+    border-top: 1px solid var(--trait);
+    vertical-align: top;
+  }
+  .semaine thead th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--poussiere);
+    font-weight: 400;
+    border-top: 0;
+  }
+  .semaine tbody th {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .semaine td:nth-child(2) {
+    color: var(--poussiere);
+  }
+  .semaine td:last-child {
+    font-family: var(--mono);
+    color: var(--poussiere);
+    white-space: nowrap;
+  }
+
+  .criteres {
+    color: var(--poussiere);
+    font-size: 14px;
+    max-width: 70ch;
+    padding-left: 18px;
+  }
+  .criteres li {
+    margin-bottom: 6px;
+  }
+
+  .pages-impro {
+    list-style: none;
+    padding: 0;
+    margin: 18px 0 0;
+  }
+  .pages-impro li {
+    border-top: 1px solid var(--trait);
+    padding: 12px 0;
+    font-size: 14px;
+  }
+
+  .visuellement-cache {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .semaine td:nth-child(2) {
+      font-size: 13px;
+    }
+  }
+</style>

@@ -1,0 +1,83 @@
+---
+import "~/styles/global.css";
+
+interface Props {
+  titre: string;
+  description: string;
+  /** Chemin canonique, sans le domaine. */
+  chemin: string;
+  image?: string;
+}
+
+const { titre, description, chemin, image = "/og-clavier.png" } = Astro.props;
+const canonique = new URL(chemin, Astro.site);
+
+// Umami, auto-hébergé et sans cookie : pas de bandeau de consentement (CLAUDE.md §5).
+// Tant que les variables sont vides, aucun script tiers n'est chargé.
+const umamiUrl = import.meta.env.PUBLIC_UMAMI_URL;
+const umamiId = import.meta.env.PUBLIC_UMAMI_ID;
+
+const LIENS = [
+  { href: "/", texte: "L'outil" },
+  { href: "/routine/lundi", texte: "La routine" },
+  { href: "/roadmap", texte: "Roadmap 18 mois" },
+  { href: "/a-propos", texte: "À propos" },
+];
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titre}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonique} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={titre} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonique} />
+    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta property="og:locale" content="fr_FR" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {umamiUrl && umamiId && <script is:inline defer src={umamiUrl} data-website-id={umamiId} />}
+  </head>
+
+  <body>
+    <header class="entete">
+      <div class="wrap">
+        <p class="surtitre">
+          <span>Phase <b>1</b> · Fondations · mois 1–3</span>
+          <span>Objectif : <b>improviser &amp; composer</b></span>
+        </p>
+        <nav class="nav" aria-label="Navigation principale">
+          {
+            LIENS.map((l) => (
+              <a href={l.href} aria-current={Astro.url.pathname === l.href ? "page" : undefined}>
+                {l.texte}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="pied">
+      <div class="wrap">
+        <p>
+          Le plan est gratuit et public. Ce qui se paiera un jour, c'est le retour quotidien :
+          l'historique, les enregistrements, la trace des progrès. Pas le contenu.
+        </p>
+        <p>
+          Construit par un autodidacte pour lui-même, en public. <a href="/a-propos">Pourquoi</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

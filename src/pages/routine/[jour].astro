@@ -1,0 +1,200 @@
+---
+import Base from "~/layouts/Base.astro";
+import CaptureEmail from "~/components/CaptureEmail.astro";
+import { exercice } from "~/content/curriculum/exercices";
+import { JOURS_ORDONNES, dureeDuJour, jour, slugDeJour } from "~/content/curriculum/phase1";
+import { svgDExercice } from "~/lib/clavier";
+import { nomDeTonique } from "~/lib/musique";
+
+export function getStaticPaths() {
+  return JOURS_ORDONNES.map((weekday) => ({
+    params: { jour: slugDeJour(weekday) },
+    props: { weekday },
+  }));
+}
+
+const { weekday } = Astro.props;
+const d = jour(weekday)!;
+const total = dureeDuJour(weekday);
+
+// Le diagramme de doigté est produit ICI, au build. C'est ce qui le rend
+// visible et indexable JS désactivé (I2) : l'îlot Svelte ne fait que l'animer.
+const blocs = d.blocks.map((bloc) => {
+  const ex = bloc.exerciseId ? exercice(bloc.exerciseId) : undefined;
+  return { bloc, ex, svg: ex ? svgDExercice(ex) : null };
+});
+
+const ordre = [...JOURS_ORDONNES];
+const position = ordre.indexOf(weekday as (typeof ordre)[number]);
+const precedent = ordre[(position - 1 + ordre.length) % ordre.length]!;
+const suivant = ordre[(position + 1) % ordre.length]!;
+---
+
+<Base
+  titre={`${d.label} — routine piano improvisation (${total} min) | Phase 1`}
+  description={`${d.focus} Séance de ${total} minutes en ${d.blocks.length} blocs courts : ${d.blocks.map((b) => b.title).join(", ")}.`}
+  chemin={`/routine/${slugDeJour(weekday)}`}
+>
+  <article class="wrap">
+    <p class="surtitre">
+      <span>Routine hebdomadaire</span>
+      <span><b>{total} min</b></span>
+      {d.keyOfDay && <span>Tonalité : <b>{d.keyOfDay}</b></span>}
+    </p>
+    <h1>{d.label}</h1>
+    <p class="chapo">{d.focus}</p>
+
+    <ol class="blocs">
+      {
+        blocs.map(({ bloc, ex, svg }, i) => (
+          <li class="bloc">
+            <div class="tete">
+              <span class="etiquette">{bloc.tag}</span>
+              <span class="duree">{bloc.minutes ? `${bloc.minutes} min` : "libre"}</span>
+            </div>
+            <h2>
+              {i + 1}. {bloc.title}
+            </h2>
+            <ul class="comment">
+              {bloc.how.map((consigne) => (
+                <li set:html={consigne} />
+              ))}
+            </ul>
+
+            {ex && svg && (
+              <figure class="schema">
+                <figcaption>
+                  <strong>{ex.name}</strong> en {nomDeTonique(ex.root)} — doigté
+                </figcaption>
+                <div class="clavier" set:html={svg} />
+                <p class="conseil" set:html={ex.tip} />
+                <p class="legende">
+                  <span>
+                    <b>1</b> pouce
+                  </span>
+                  <span>
+                    <b>2</b> index
+                  </span>
+                  <span>
+                    <b>3</b> majeur
+                  </span>
+                  <span>
+                    <b>4</b> annulaire
+                  </span>
+                  <span>
+                    <b>5</b> auriculaire
+                  </span>
+                </p>
+                <p class="tonalites">
+                  Tonalités travaillées : {ex.keys.map((k) => nomDeTonique(k)).join(" · ")}
+                </p>
+              </figure>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+
+    <nav class="entre-jours" aria-label="Autres jours">
+      <a href={`/routine/${slugDeJour(precedent)}`}>← {jour(precedent)!.label}</a>
+      <a href="/#seance">Faire cette séance en chronométré</a>
+      <a href={`/routine/${slugDeJour(suivant)}`}>{jour(suivant)!.label} →</a>
+    </nav>
+
+    <CaptureEmail />
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: 40px;
+  }
+  h1 {
+    margin-top: 6px;
+  }
+  .blocs {
+    list-style: none;
+    padding: 0;
+    margin: 30px 0 0;
+    counter-reset: bloc;
+  }
+  .bloc {
+    border-top: 1px solid var(--trait);
+    padding: 22px 0;
+  }
+  .bloc:last-child {
+    border-bottom: 1px solid var(--trait);
+  }
+  .tete {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .duree {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--poussiere);
+  }
+  .bloc h2 {
+    font-family: var(--texte);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 4px 0 10px;
+    letter-spacing: -0.01em;
+  }
+  .comment {
+    color: var(--poussiere);
+    font-size: 14px;
+    max-width: 72ch;
+    padding-left: 18px;
+    margin: 0;
+  }
+  .comment li {
+    margin-bottom: 5px;
+  }
+
+  .schema {
+    margin: 18px 0 0;
+    border: 1px solid var(--trait);
+    background: var(--caisse);
+    padding: 16px;
+  }
+  .schema figcaption {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--poussiere);
+    margin-bottom: 12px;
+  }
+  .schema figcaption strong {
+    color: var(--laiton);
+    font-weight: 600;
+  }
+  .conseil {
+    font-size: 13px;
+    color: var(--poussiere);
+    margin: 12px 0 0;
+    max-width: 70ch;
+  }
+  .tonalites {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    color: var(--poussiere);
+    margin: 10px 0 0;
+  }
+
+  .entre-jours {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 34px;
+  }
+</style>

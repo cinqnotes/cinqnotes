@@ -1,0 +1,236 @@
+---
+import Base from "~/layouts/Base.astro";
+import CaptureEmail from "~/components/CaptureEmail.astro";
+import GenerateurImpro from "~/components/GenerateurImpro.svelte";
+import {
+  AMBIANCES,
+  TONALITES_IMPRO,
+  ambiance,
+  nomDAccord,
+  notesDAccord,
+} from "~/content/curriculum/grilles";
+import type { PitchClass } from "~/content/curriculum/types";
+import { claverSVG, construireSurlignage } from "~/lib/clavier";
+import { nomDeNote, nomDeTonique, toniqueEnSlug } from "~/lib/musique";
+
+export function getStaticPaths() {
+  return AMBIANCES.flatMap((a) =>
+    TONALITES_IMPRO.map((t) => ({
+      params: { grille: `${a.id}-${toniqueEnSlug(t)}` },
+      props: { idAmbiance: a.id, tonique: t },
+    })),
+  );
+}
+
+const { idAmbiance, tonique } = Astro.props as { idAmbiance: string; tonique: PitchClass };
+const amb = ambiance(idAmbiance)!;
+
+// Le clavier des notes sûres est rendu au build : la page vaut quelque chose
+// même sans JavaScript, et c'est elle qui sera indexée (I2).
+const { surlignage, base } = construireSurlignage(
+  {
+    id: "impro",
+    name: amb.nomGammeSure,
+    tip: "",
+    ghost: amb.gammeSure,
+    root: tonique,
+    keys: [tonique],
+    tempo: 0,
+  },
+  { main: "MD", tonique },
+);
+const svg = claverSVG(surlignage, base);
+
+const accords = amb.grille.map((a) => ({
+  degre: a.degre,
+  nom: nomDAccord(a, tonique),
+  notes: notesDAccord(a).map((n) => nomDeNote(tonique + n, tonique)),
+}));
+
+const notesSures = amb.gammeSure.map((i) => nomDeNote(tonique + i, tonique));
+const nomTonique = nomDeTonique(tonique);
+const autresTonalites = TONALITES_IMPRO.filter((t) => t !== tonique);
+---
+
+<Base
+  titre={`Improviser en ${nomTonique} — grille ${amb.nom.toLowerCase()} au piano`}
+  description={`Grille de 4 accords (${accords.map((a) => a.nom).join(" – ")}), les ${notesSures.length} notes qui ne peuvent pas sonner faux, et une contrainte pour ne pas tourner en rond. Tempo ${amb.tempo} BPM.`}
+  chemin={`/impro/${idAmbiance}-${toniqueEnSlug(tonique)}`}
+>
+  <article class="wrap">
+    <p class="surtitre">
+      <span>Grille d'impro</span>
+      <span><b>{amb.nom}</b></span>
+      <span>{amb.tempo} BPM</span>
+    </p>
+    <h1>Improviser en <em>{nomTonique}</em></h1>
+    <p class="chapo">{amb.couleur}</p>
+
+    <GenerateurImpro
+      client:load
+      ambianceInitiale={idAmbiance}
+      toniqueInitiale={tonique}
+      figee={true}
+    />
+
+    <section aria-labelledby="grille-titre">
+      <h2 id="grille-titre">La grille, accord par accord</h2>
+      <table class="accords">
+        <thead>
+          <tr>
+            <th scope="col">Degré</th>
+            <th scope="col">Accord</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            accords.map((a) => (
+              <tr>
+                <th scope="row">{a.degre}</th>
+                <td>{a.nom}</td>
+                <td>{a.notes.join(" – ")}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+      <p class="note">
+        Majuscules = accord majeur, minuscules = accord mineur. Une suite d'accords n'est protégée
+        par aucun droit d'auteur : tu peux l'utiliser sans rien demander à personne.
+      </p>
+    </section>
+
+    <section aria-labelledby="notes-titre">
+      <h2 id="notes-titre">Les notes qui ne peuvent pas sonner faux</h2>
+      <p>
+        {notesSures.join(" – ")} — la {amb.nomGammeSure} de {nomTonique}. Cinq notes, et aucune
+        combinaison ne sonne fausse sur cette grille. C'est fait pour ça : tu n'as plus à choisir
+        <em>quoi</em> jouer, seulement <em>quand</em>.
+      </p>
+      <figure class="schema">
+        <div class="clavier" set:html={svg} />
+        <figcaption>
+          {amb.nomGammeSure} de {nomTonique}, sur deux octaves. La note en rouge est la tonique.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section aria-labelledby="contrainte-titre">
+      <h2 id="contrainte-titre">La contrainte</h2>
+      <p class="regle">{amb.contrainte}</p>
+      <p set:html={amb.conseil} />
+      <p>
+        Sans contrainte, une impro de débutant tourne en rond au bout de trente secondes — non par
+        manque de technique, mais parce que rien ne force à faire un choix. La contrainte fait ce
+        travail à ta place.
+      </p>
+    </section>
+
+    <section aria-labelledby="apres-titre">
+      <h2 id="apres-titre">Et après ?</h2>
+      <p>
+        Cette grille est un point d'entrée, pas une méthode. Ce qui fait progresser, c'est de revenir
+        tous les jours : <a href="/#seance">la séance quotidienne</a> tient en 45 minutes découpées en
+        blocs courts, et le bloc d'improvisation n'y est jamais optionnel. C'est gratuit, sans compte,
+        et tout reste sur ton appareil.
+      </p>
+      <p class="note">
+        Même ambiance, autre tonalité :
+        {
+          autresTonalites.map((t, i) => (
+            <>
+              {i > 0 ? " · " : ""}
+              <a href={`/impro/${idAmbiance}-${toniqueEnSlug(t)}`}>{nomDeTonique(t)}</a>
+            </>
+          ))
+        }
+      </p>
+      <p class="note">
+        Autres ambiances en {nomTonique} :
+        {
+          AMBIANCES.filter((a) => a.id !== idAmbiance).map((a, i) => (
+            <>
+              {i > 0 ? " · " : ""}
+              <a href={`/impro/${a.id}-${toniqueEnSlug(tonique)}`}>{a.nom}</a>
+            </>
+          ))
+        }
+      </p>
+    </section>
+
+    <CaptureEmail />
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: 40px;
+  }
+  h1 {
+    margin-top: 6px;
+  }
+  h2 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 26px;
+    margin: 44px 0 12px;
+  }
+  p {
+    max-width: 70ch;
+    font-size: 14.5px;
+  }
+  .regle {
+    font-size: 19px;
+    color: var(--ivoire);
+    border-left: 2px solid var(--laiton);
+    padding-left: 14px;
+    margin-left: 0;
+  }
+  .note {
+    font-size: 13px;
+    color: var(--poussiere);
+  }
+
+  .accords {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .accords th,
+  .accords td {
+    text-align: left;
+    padding: 11px 14px 11px 0;
+    border-top: 1px solid var(--trait);
+  }
+  .accords thead th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--poussiere);
+    font-weight: 400;
+    border-top: 0;
+  }
+  .accords tbody th {
+    font-family: var(--mono);
+    color: var(--laiton);
+    width: 6em;
+  }
+
+  .schema {
+    margin: 16px 0 0;
+    border: 1px solid var(--trait);
+    background: var(--caisse);
+    padding: 16px;
+  }
+  .schema figcaption {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--poussiere);
+    margin-top: 12px;
+  }
+</style>

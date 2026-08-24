@@ -1,0 +1,253 @@
+/* Polices auto-hébergées plutôt que servies par Google.
+   Deux raisons, dans cet ordre : la feuille de style tierce bloquait le rendu
+   et coûtait 3,1 s de LCP, sous le budget Lighthouse de 90 ; et un appel à un
+   domaine tiers à chaque visite contredit ce qu'on annonce par ailleurs —
+   aucun tiers, aucun cookie, pas de bandeau de consentement. */
+@import "@fontsource-variable/bodoni-moda/opsz.css";
+@import "@fontsource-variable/bodoni-moda/opsz-italic.css";
+@import "@fontsource/karla/400.css";
+@import "@fontsource/karla/500.css";
+@import "@fontsource/karla/700.css";
+@import "@fontsource-variable/jetbrains-mono/wght.css";
+
+/* Identité visuelle reprise du prototype : bois, ivoire, laiton, feutre.
+   Pas de framework CSS — le MVP en avait déjà un cohérent (CLAUDE.md §5). */
+
+:root {
+  --ebene: #14100e;
+  --caisse: #1d1714;
+  --caisse2: #251e1a;
+  --ivoire: #e9e1d1;
+  --poussiere: #8b8076;
+  /* Le gris de --poussiere tombe à 4,30:1 sur --caisse2, sous le seuil AA de
+     4,5:1 pour du petit texte. Cette nuance monte à 5,2:1 : à réserver aux
+     libellés de moins de 12 px posés sur un panneau. */
+  --poussiere-vive: #9a8f84;
+  --laiton: #c9a227;
+  --feutre: #a8323c;
+  --trait: rgba(201, 162, 39, 0.22);
+
+  --titre: "Bodoni Moda Variable", Georgia, "Times New Roman", serif;
+  --texte: "Karla", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono Variable", ui-monospace, Menlo, Consolas, monospace;
+
+  --largeur: 1080px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--ebene);
+  color: var(--ivoire);
+  font-family: var(--texte);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  padding: 0 0 64px;
+}
+
+a {
+  color: var(--laiton);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(201, 162, 39, 0.3);
+}
+a:hover {
+  border-bottom-color: var(--laiton);
+}
+
+:focus-visible {
+  outline: 2px solid var(--laiton);
+  outline-offset: 2px;
+}
+
+.wrap {
+  max-width: var(--largeur);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+h1 {
+  font-family: var(--titre);
+  font-weight: 400;
+  font-size: clamp(38px, 7vw, 62px);
+  line-height: 0.98;
+  margin: 10px 0 2px;
+  letter-spacing: -0.01em;
+}
+h1 em {
+  font-style: italic;
+  color: var(--laiton);
+}
+
+h2 {
+  font-family: var(--titre);
+  font-weight: 400;
+  font-size: 26px;
+  margin: 0;
+}
+
+h3 {
+  font-family: var(--texte);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+.surtitre {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--poussiere);
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.surtitre b {
+  color: var(--laiton);
+  font-weight: 600;
+}
+
+.chapo {
+  color: var(--poussiere);
+  font-size: 14px;
+  margin: 0 0 20px;
+  max-width: 60ch;
+}
+
+.etiquette {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--laiton);
+  display: block;
+  margin-bottom: 3px;
+}
+
+/* Boutons — un seul style, décliné */
+.bouton {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px solid var(--trait);
+  color: var(--ivoire);
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: 0.18s;
+}
+.bouton:hover:not(:disabled) {
+  border-color: var(--laiton);
+}
+.bouton.actif {
+  background: var(--feutre);
+  border-color: var(--feutre);
+  color: #fff;
+}
+.bouton:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.bouton.principal {
+  background: var(--laiton);
+  border-color: var(--laiton);
+  color: var(--ebene);
+  font-weight: 600;
+}
+.bouton.principal:hover {
+  filter: brightness(1.1);
+}
+
+.panneau {
+  border: 1px solid var(--trait);
+  background: var(--caisse);
+  padding: 18px;
+  margin-bottom: 26px;
+}
+.panneau > h3 {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--poussiere);
+  margin: 0 0 12px;
+  font-weight: 400;
+}
+
+/* En-tête et pied communs à toutes les pages */
+.entete {
+  border-bottom: 1px solid var(--trait);
+  padding: 26px 0 18px;
+}
+.nav {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 14px 0 0;
+}
+.nav a {
+  border-bottom: 0;
+  color: var(--poussiere);
+}
+.nav a:hover,
+.nav a[aria-current="page"] {
+  color: var(--laiton);
+}
+
+.pied {
+  color: var(--poussiere);
+  font-size: 12.5px;
+  border-top: 1px solid var(--trait);
+  margin-top: 40px;
+  padding-top: 18px;
+}
+
+/* Le clavier SVG, où qu'il soit rendu */
+.clavier svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.legende {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--poussiere);
+  margin-top: 10px;
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.legende b {
+  color: var(--laiton);
+  font-weight: 600;
+}
+
+/* Une partie des utilisateurs pratique le soir : on respecte le réglage système
+   autant que le contraste (CLAUDE.md §11). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

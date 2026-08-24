@@ -1,0 +1,86 @@
+---
+/**
+ * Gabarit de l'image Open Graph. Cette page n'existe que pour être capturée
+ * par `npm run og` — elle est exclue du sitemap et marquée `noindex`.
+ * Le clavier est le vrai clavier du site, produit par la même fonction pure :
+ * la vignette ne peut donc pas mentir sur ce que contient l'outil.
+ */
+import { PENTATONIQUE } from "~/content/curriculum/exercices";
+import { svgDExercice } from "~/lib/clavier";
+import "~/styles/global.css";
+
+const svg = svgDExercice(PENTATONIQUE);
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Open Graph</title>
+  </head>
+  <body>
+    <div class="carte">
+      <p class="surtitre">
+        <span>Roadmap Piano</span><span>·</span><span>Phase 1 — Fondations</span>
+      </p>
+      <h1>Tu sais rejouer.<br /><em>Apprends à créer.</em></h1>
+      <div class="clavier" set:html={svg} />
+      <p class="pied">
+        Improviser et composer au piano — grilles, doigtés animés, routine quotidienne. Gratuit.
+      </p>
+    </div>
+  </body>
+</html>
+
+<style>
+  body {
+    padding: 0;
+    margin: 0;
+  }
+  .carte {
+    width: 1200px;
+    height: 630px;
+    background: var(--ebene);
+    padding: 54px 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-bottom: 6px solid var(--laiton);
+    box-sizing: border-box;
+  }
+  .surtitre {
+    font-family: var(--mono);
+    font-size: 15px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--poussiere);
+    display: flex;
+    gap: 14px;
+    margin: 0;
+  }
+  h1 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 78px;
+    line-height: 1.02;
+    margin: 0;
+    color: var(--ivoire);
+  }
+  h1 em {
+    font-style: italic;
+    color: var(--laiton);
+  }
+  .clavier :global(svg) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .pied {
+    font-family: var(--mono);
+    font-size: 17px;
+    color: var(--poussiere);
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+</style>

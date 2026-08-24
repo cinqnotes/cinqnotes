@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.production
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.cache/
+
+.DS_Store

@@ -1,0 +1,286 @@
+---
+import Base from "~/layouts/Base.astro";
+import CaptureEmail from "~/components/CaptureEmail.astro";
+import { JOURS_ORDONNES, PHASE_1, dureeDuJour, jour, slugDeJour } from "~/content/curriculum/phase1";
+
+const PHASES = [
+  {
+    id: 1,
+    ancre: "phase-1",
+    titre: "Fondations",
+    mois: "Mois 1 à 3",
+    etat: "disponible" as const,
+    resume:
+      "Faire entrer les triades dans les doigts et enlever la peur de la page blanche. À la fin de cette phase, tu improvises deux minutes sans t'arrêter — pas bien, mais sans t'arrêter. C'est le seuil qui compte.",
+    contenu: [
+      "Triades majeures et mineures, les trois renversements, dans les douze tonalités.",
+      "Gammes majeures et mineures naturelles, mains séparées puis ensemble, avec le doigté propre à chaque tonalité.",
+      "Pentatonique mineure : cinq notes où rien ne peut sonner faux.",
+      "Pédale de quinte à la main gauche, question-réponse à la main droite.",
+      "Grille I–V–vi–IV avec liaison des voix — la grille de 80 % de la pop.",
+      "Relevé d'oreille : une mélodie connue, une note à la fois.",
+    ],
+  },
+  {
+    id: 2,
+    ancre: "phase-2",
+    titre: "Vocabulaire",
+    mois: "Mois 4 à 6",
+    etat: "à écrire" as const,
+    resume:
+      "Passer de « je pose des accords » à « j'ai des couleurs ». C'est ici que l'oreille commence à reconnaître ce qu'elle entend dans les morceaux qu'elle aime.",
+    contenu: [
+      "Accords de septième : majeur 7, mineur 7, dominante 7.",
+      "Voicings main gauche fondamentale–3–7 : deux notes qui disent tout l'accord.",
+      "La cadence ii–V–I, dans les douze tonalités.",
+      "Patterns d'accompagnement : valse, arpégé, syncopé.",
+      "Développement motivique — construire quatre mesures à partir d'une idée de trois notes.",
+    ],
+  },
+  {
+    id: 3,
+    ancre: "phase-3",
+    titre: "Langage",
+    mois: "Mois 7 à 12",
+    etat: "à écrire" as const,
+    resume:
+      "Choisir ses notes au lieu de les subir. La différence entre « ça sonne juste » et « ça dit quelque chose ».",
+    contenu: [
+      "Les modes, et à quoi chacun sert concrètement.",
+      "Notes-cibles : viser une note précise sur un temps précis.",
+      "Transcription : relever un solo entier, pas seulement une mélodie.",
+      "Réharmonisation — remplacer un accord par un autre qui fait le même travail.",
+      "Composition structurée : couplet, refrain, pont.",
+    ],
+  },
+  {
+    id: 4,
+    ancre: "phase-4",
+    titre: "Voix personnelle",
+    mois: "Mois 13 à 18",
+    etat: "à écrire" as const,
+    resume:
+      "Arrêter de sonner comme un exercice. Un morceau original terminé par mois — terminé, pas génial.",
+    contenu: [
+      "Relevé de solos complets, chez des pianistes dont tu aimes le son.",
+      "Un morceau original fini chaque mois.",
+      "Arrangement : la même idée pour trois ambiances différentes.",
+      "Jouer devant quelqu'un. C'est un exercice technique, pas un test de courage.",
+    ],
+  },
+];
+---
+
+<Base
+  titre="Roadmap 18 mois — apprendre à improviser et composer au piano"
+  description="Le plan complet, gratuit et public : 18 mois découpés en quatre phases, de la triade majeure au morceau original. Ce qu'on travaille, dans quel ordre, et pourquoi."
+  chemin="/roadmap"
+>
+  <article class="wrap">
+    <h1>Dix-huit mois, <em>en clair</em></h1>
+    <p class="chapo">
+      Le plan est gratuit et public, et il le restera. Il n'y a rien à déverrouiller : ce qui se
+      paiera un jour, c'est le retour quotidien — l'historique, les enregistrements, la trace des
+      progrès. Pas le contenu. Un plan qu'on cache ne sert personne, et de toute façon il se recopie
+      en dix minutes.
+    </p>
+
+    <nav class="sommaire" aria-label="Les quatre phases">
+      {
+        PHASES.map((p) => (
+          <a href={`#${p.ancre}`}>
+            <span class="num">Phase {p.id}</span>
+            <span class="nom">{p.titre}</span>
+            <span class="mois">{p.mois}</span>
+          </a>
+        ))
+      }
+    </nav>
+
+    {
+      PHASES.map((p) => (
+        <section id={p.ancre} class="phase" aria-labelledby={`${p.ancre}-titre`}>
+          <p class="surtitre">
+            <span>{p.mois}</span>
+            <span class={p.etat === "disponible" ? "dispo" : "attente"}>
+              {p.etat === "disponible" ? "Disponible" : "À écrire"}
+            </span>
+          </p>
+          <h2 id={`${p.ancre}-titre`}>
+            Phase {p.id} — {p.titre}
+          </h2>
+          <p class="resume">{p.resume}</p>
+          <ul class="contenu">
+            {p.contenu.map((c) => (
+              <li>{c}</li>
+            ))}
+          </ul>
+
+          {p.id === 1 && (
+            <>
+              <h3>La semaine, jour par jour</h3>
+              <ul class="jours">
+                {JOURS_ORDONNES.map((j) => (
+                  <li>
+                    <a href={`/routine/${slugDeJour(j)}`}>{jour(j)!.label}</a>
+                    <span class="focus">{jour(j)!.focus}</span>
+                    <span class="duree">{dureeDuJour(j)} min</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h3>Ce qui autorise à passer à la phase 2</h3>
+              <ul class="contenu">
+                {PHASE_1.exitCriteria.map((c) => (
+                  <li>{c}</li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
+      ))
+    }
+
+    <section class="phase" aria-labelledby="honnete-titre">
+      <h2 id="honnete-titre">Ce que ce plan n'est pas</h2>
+      <p class="resume">
+        Ce n'est pas une méthode validée par un conservatoire, et je ne suis pas professeur de piano.
+        C'est le plan que j'ai construit pour moi, à partir de ce que disent les gens dont le travail
+        m'a convaincu, et que je suis en train de parcourir. Il évoluera à mesure que je découvrirai
+        ce qui ne marche pas. <a href="/a-propos">Le détail est ici</a>, sans enrobage.
+      </p>
+      <p class="resume">
+        Ce n'est pas non plus un cours de solfège, ni un catalogue de morceaux à reproduire. On
+        n'héberge aucune partition : le répertoire se cite par titre et renvoie vers des sources
+        légitimes.
+      </p>
+    </section>
+
+    <CaptureEmail />
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: 40px;
+  }
+  .chapo {
+    max-width: 70ch;
+    font-size: 15px;
+  }
+
+  .sommaire {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--trait);
+    border: 1px solid var(--trait);
+    margin: 30px 0 10px;
+  }
+  .sommaire a {
+    background: var(--caisse);
+    padding: 16px;
+    border-bottom: 0;
+    display: block;
+    color: var(--ivoire);
+    transition: 0.16s;
+  }
+  .sommaire a:hover {
+    background: var(--caisse2);
+  }
+  .sommaire .num {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--laiton);
+  }
+  .sommaire .nom {
+    display: block;
+    font-family: var(--titre);
+    font-size: 21px;
+    margin: 4px 0 2px;
+  }
+  .sommaire .mois {
+    display: block;
+    font-size: 12px;
+    color: var(--poussiere);
+  }
+
+  .phase {
+    border-top: 1px solid var(--trait);
+    padding: 34px 0 10px;
+    margin-top: 20px;
+    scroll-margin-top: 20px;
+  }
+  .phase h2 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 30px;
+    margin: 6px 0 12px;
+  }
+  .phase h3 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--poussiere);
+    font-weight: 400;
+    margin: 30px 0 12px;
+  }
+  .resume {
+    color: var(--poussiere);
+    font-size: 14.5px;
+    max-width: 72ch;
+  }
+  .contenu {
+    font-size: 14px;
+    max-width: 72ch;
+    padding-left: 18px;
+  }
+  .contenu li {
+    margin-bottom: 6px;
+  }
+
+  .dispo {
+    color: var(--laiton);
+  }
+  .attente {
+    color: var(--poussiere);
+  }
+
+  .jours {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .jours li {
+    display: grid;
+    grid-template-columns: 7em 1fr auto;
+    gap: 14px;
+    align-items: baseline;
+    border-top: 1px solid var(--trait);
+    padding: 11px 0;
+    font-size: 14px;
+  }
+  .jours .focus {
+    color: var(--poussiere);
+  }
+  .jours .duree {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--poussiere);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .jours li {
+      grid-template-columns: 1fr auto;
+    }
+    .jours .focus {
+      grid-column: 1 / -1;
+      font-size: 13px;
+    }
+  }
+</style>

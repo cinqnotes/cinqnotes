@@ -1,0 +1,118 @@
+---
+import Base from "~/layouts/Base.astro";
+import CaptureEmail from "~/components/CaptureEmail.astro";
+---
+
+<Base
+  titre="À propos — pourquoi un débutant construit un outil pour improviser au piano"
+  description="Je ne suis pas professeur de piano. Je suis l'élève. Voici pourquoi je construis cet outil en public, ce que ça vaut, et ce que ça ne vaut pas."
+  chemin="/a-propos"
+>
+  <article class="wrap">
+    <h1>Je ne suis pas prof.<br /><em>Je suis l'élève.</em></h1>
+
+    <p class="chapo">
+      Autant le dire tout de suite, parce que ça change la façon de lire tout le reste : je suis
+      débutant au piano. Je ne vends pas une méthode éprouvée sur trois cents élèves. Je construis
+      l'outil que je voulais pour moi, et je le laisse ouvert pendant que je m'en sers.
+    </p>
+
+    <h2>Le problème que j'ai rencontré</h2>
+    <p>
+      J'ai fait ce que tout le monde fait : une application, quelques morceaux, la satisfaction de
+      jouer un truc reconnaissable. Puis le mur. Je savais rejouer, je ne savais pas créer. Assis
+      devant le clavier sans partition, je ne produisais rien — pas par manque de technique, mais
+      parce que personne ne m'avait jamais dit quoi travailler pour ça.
+    </p>
+    <p>
+      Les grandes applications ne répondent pas à cette question. Elles sont excellentes pour
+      apprendre à reproduire, et c'est précisément là qu'elles s'arrêtent. Les gens qui enseignent
+      vraiment l'improvisation écrivent des articles, tiennent des chaînes, font des cours
+      particuliers — mais personne ne propose d'outil interactif pour la pratique quotidienne. C'est
+      le trou dans lequel je me suis mis.
+    </p>
+
+    <h2>Ce que vaut ce plan, et ce qu'il ne vaut pas</h2>
+    <p>
+      Le contenu est la convergence de quatre ou cinq sources sérieuses : PianoGroove, Piano With
+      Jonny, improviseraupiano.com, deschansonsauboutdesdoigts.com. Toutes disent à peu près la même
+      chose — des blocs courts, la régularité avant la durée, une contrainte créative, la
+      transcription comme source de vocabulaire. Ce que j'ai fait, c'est le mettre en calendrier et
+      en outil.
+    </p>
+    <p>
+      Ce que ça ne vaut pas : l'œil d'un professeur sur ta posture, ta main, ta sonorité. Aucun
+      logiciel ne remplace ça, et surtout pas celui-là. Si tu peux prendre des cours, prends-en. Cet
+      outil est fait pour les jours où tu es seul devant ton clavier — c'est-à-dire la plupart.
+    </p>
+    <p>
+      Il y a une chose sur laquelle je ne transige pas, malgré mon niveau : les doigtés. Un doigté de
+      gamme ne se transpose pas d'une tonalité à l'autre, et un mauvais doigté installé pendant six
+      mois est un vrai dégât. Une tonalité n'apparaît dans l'outil que si son doigté est écrit et
+      vérifié explicitement — c'est pourquoi certaines gammes n'y sont proposées que dans cinq ou six
+      tonalités. Un trou visible vaut mieux qu'une erreur invisible.
+    </p>
+
+    <h2>Comment c'est fait</h2>
+    <p>
+      Tout se passe sur ton appareil. Pas de compte, pas de cookie de suivi, pas de mot de passe à
+      stocker. La mesure d'audience est auto-hébergée et anonyme — je veux savoir si les gens
+      démarrent une séance, pas qui ils sont.
+    </p>
+    <p>
+      Quand l'enregistrement audio arrivera, il restera local lui aussi : le montage mensuel sera
+      fabriqué dans ton navigateur, et rien ne partira sur un serveur sans que tu le demandes
+      explicitement. Ce n'est pas une posture — c'est qu'héberger des vidéos de gens en train de
+      jouer chez eux est une responsabilité que je ne veux pas prendre à la légère.
+    </p>
+
+    <h2>Ce qui est gratuit, ce qui sera payant</h2>
+    <p>
+      Le plan entier — les dix-huit mois, les quatre phases — est gratuit et le restera. La séance du
+      jour aussi : les blocs, le chronomètre, le métronome, les doigtés animés, le journal. Sans
+      compte, sans limite de temps.
+    </p>
+    <p>
+      Ce qui sera payant plus tard, c'est ce qui demande de la mémoire dans le temps : l'historique
+      long, les statistiques, la synchronisation entre appareils, les enregistrements et le montage
+      mensuel. C'est aussi la seule partie qui me coûte quelque chose à faire tourner. Je préfère
+      vendre du logiciel, que je sais faire, plutôt qu'une pédagogie que je suis en train
+      d'apprendre.
+    </p>
+
+    <h2>Où j'en suis</h2>
+    <p>
+      La phase 1 est écrite et utilisable. Les phases 2 à 4 sont cadrées mais pas rédigées : je ne
+      les écrirai pas avant d'avoir la preuve que quelqu'un revient sur cet outil deux semaines de
+      suite. Si personne ne revient, ce projet s'arrête là, et ce sera un résultat, pas un échec.
+    </p>
+    <p>
+      Si tu t'en sers, la chose la plus utile que tu puisses faire est de me dire ce que tu as fait
+      juste après avoir fermé la page. C'est la seule question qui m'apprend quelque chose.
+    </p>
+
+    <CaptureEmail />
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: 40px;
+  }
+  h2 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 26px;
+    margin: 44px 0 12px;
+  }
+  p {
+    max-width: 70ch;
+    font-size: 14.5px;
+    color: var(--poussiere);
+  }
+  .chapo {
+    font-size: 16px;
+    color: var(--ivoire);
+    max-width: 66ch;
+  }
+</style>
