@@ -31,7 +31,7 @@ const suivant = ordre[(position + 1) % ordre.length]!;
 ---
 
 <Base
-  titre={`${d.label} — routine piano improvisation (${total} min) | Phase 1`}
+  titre={`${d.label} — séance piano de ${total} min`}
   description={`${d.focus} Séance de ${total} minutes en ${d.blocks.length} blocs courts : ${d.blocks.map((b) => b.title).join(", ")}.`}
   chemin={`/routine/${slugDeJour(weekday)}`}
 >

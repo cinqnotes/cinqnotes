@@ -1,0 +1,125 @@
+---
+import Base from "~/layouts/Base.astro";
+
+/**
+ * À COMPLÉTER AVANT MISE EN LIGNE — voir les marqueurs « À compléter » ci-dessous.
+ *
+ * Point de droit utile : un éditeur particulier, non professionnel, n'est pas
+ * tenu de publier son adresse postale. Il lui suffit d'avoir communiqué son
+ * identité complète à son hébergeur et de publier le nom de celui-ci
+ * (LCEN, art. 6-III-2). C'est ce que fait cette page : nom et contact publics,
+ * adresse chez l'hébergeur. À revoir en phase 4, quand l'activité deviendra
+ * commerciale — le régime change alors complètement.
+ */
+const EDITEUR = "Ousmane Konaté";
+const CONTACT = "ousmane.k.konate@gmail.com";
+---
+
+<Base
+  titre="Mentions légales"
+  description="Éditeur, hébergeur et conditions d'utilisation de Cinq Notes."
+  chemin="/mentions-legales"
+>
+  <article class="wrap">
+    <h1>Mentions légales</h1>
+
+    <h2>Éditeur</h2>
+    <p>
+      {EDITEUR}, particulier, éditeur non professionnel.<br />
+      Contact : <a href={`mailto:${CONTACT}`}>{CONTACT}</a><br />
+      Directeur de la publication : {EDITEUR}
+    </p>
+    <p class="note">
+      Conformément à l'article 6-III-2 de la loi pour la confiance dans l'économie numérique,
+      l'adresse postale d'un éditeur particulier non professionnel n'est pas rendue publique : elle
+      est détenue par l'hébergeur, qui peut la communiquer à l'autorité judiciaire.
+    </p>
+
+    <h2>Hébergement</h2>
+    <p>
+      Cloudflare, Inc.<br />
+      101 Townsend Street, San Francisco, CA 94107, États-Unis<br />
+      <a href="https://www.cloudflare.com" rel="noopener">cloudflare.com</a>
+    </p>
+
+    <h2>Nature du service</h2>
+    <p>
+      Cinq Notes est un outil d'accompagnement à la pratique du piano, destiné aux adultes
+      autodidactes qui souhaitent improviser et composer. Il est proposé gratuitement, sans compte et
+      sans engagement.
+    </p>
+    <p>
+      <strong>Ce n'est pas un enseignement encadré.</strong> Son auteur n'est pas professeur de
+      piano. Le contenu résulte d'une synthèse de méthodes publiques, appliquée à son propre
+      apprentissage. Il ne remplace pas l'avis d'un professeur, en particulier sur la posture et la
+      technique gestuelle. En cas de douleur ou de gêne persistante en jouant, arrête et consulte.
+    </p>
+
+    <h2>Propriété intellectuelle</h2>
+    <p>
+      Les textes, les exercices, le code et les schémas de doigté de ce site sont l'œuvre de son
+      éditeur. Tu peux t'en servir librement pour ta pratique personnelle et les citer en indiquant
+      la source.
+    </p>
+    <p>
+      Ce site n'héberge et ne diffuse <strong>aucune partition ni aucun enregistrement protégé</strong>.
+      Les morceaux évoqués le sont par leur titre, et les liens renvoient vers des sources légitimes.
+      Les suites d'accords utilisées ne sont pas protégeables par le droit d'auteur : seule leur mise
+      en œuvre concrète — mélodie, arrangement, enregistrement — l'est.
+    </p>
+    <p>
+      Si tu estimes qu'un contenu porte atteinte à un droit dont tu es titulaire, écris à
+      <a href={`mailto:${CONTACT}`}>{CONTACT}</a> : je le retire sans discuter le fond.
+    </p>
+
+    <h2>Données personnelles</h2>
+    <p>
+      Le détail figure sur la page <a href="/confidentialite">Confidentialité</a>. En résumé : aucun
+      cookie, aucun traceur tiers, données de pratique conservées sur ton appareil, et une adresse
+      e-mail uniquement si tu la laisses.
+    </p>
+
+    <h2>Disponibilité</h2>
+    <p>
+      Le service est fourni tel quel, sans garantie de disponibilité ni de conservation des données.
+      Tes données de pratique étant stockées dans ton navigateur, elles dépendent de lui : vider les
+      données de site les efface définitivement.
+    </p>
+
+    <p class="retour"><a href="/confidentialite">Confidentialité</a></p>
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: 40px;
+    padding-bottom: 20px;
+  }
+  h2 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 24px;
+    margin: 40px 0 12px;
+  }
+  p {
+    max-width: 70ch;
+    font-size: 14.5px;
+    color: var(--poussiere);
+  }
+  .note {
+    font-size: 13px;
+    border-left: 1px solid var(--trait);
+    padding-left: 14px;
+  }
+  strong {
+    color: var(--ivoire);
+    font-weight: 700;
+  }
+  .retour {
+    margin-top: 44px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>

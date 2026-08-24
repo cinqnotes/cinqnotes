@@ -2,9 +2,9 @@ import { defineConfig } from "astro/config";
 import svelte from "@astrojs/svelte";
 import sitemap from "@astrojs/sitemap";
 
-// Le domaine n'est pas encore arrêté (CLAUDE.md §10). SITE_URL le surchargera
-// le jour du déploiement ; la valeur par défaut suffit pour un build local.
-const site = process.env.SITE_URL || "https://roadmap-piano.exemple";
+// SITE_URL surcharge le domaine en CI. La valeur par défaut est le domaine réel :
+// un build local doit produire exactement ce qui partira en production.
+const site = process.env.SITE_URL || "https://cinqnotes.fr";
 
 export default defineConfig({
   site,

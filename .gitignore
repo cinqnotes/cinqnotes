@@ -4,6 +4,9 @@ dist/
 .env
 .env.production
 
+# État local de wrangler : base D1 de développement, cache du runtime.
+.wrangler/
+
 # Playwright
 test-results/
 playwright-report/

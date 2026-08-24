@@ -1,0 +1,69 @@
+# Umami — mesure d'audience auto-hébergée sur le homelab (CLAUDE.md §5, D7).
+# Sans cookie, donc sans bandeau de consentement, et les données restent chez soi.
+#
+# AUCUN PORT N'EST PUBLIÉ sur l'hôte. L'accès public passe par un tunnel
+# Cloudflare, pour trois raisons :
+#   - le script de mesure est chargé par chaque visiteur ; le servir depuis une
+#     IP résidentielle serait lent et ferait chuter le LCP ;
+#   - ça exposerait l'adresse IP du domicile ;
+#   - ça imposerait d'ouvrir un port sur la box.
+# Le tunnel supprime les trois. Il sort en direction de Cloudflare : rien à
+# ouvrir en entrée.
+#
+# Démarrage :  docker compose --env-file .env up -d
+# Voir infra/README.md pour la marche à suivre complète.
+
+services:
+  base:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans .env}
+    volumes:
+      - donnees-umami:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami -d umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    restart: unless-stopped
+    environment:
+      DATABASE_TYPE: postgresql
+      DATABASE_URL: postgresql://umami:${POSTGRES_PASSWORD}@base:5432/umami
+      # Change les jetons de session. En modifier la valeur déconnecte tout le
+      # monde ; à générer une fois avec `openssl rand -base64 32`.
+      APP_SECRET: ${APP_SECRET:?définir APP_SECRET dans .env}
+      # Désactive l'appel de télémétrie sortant : on ne mesure pas les autres,
+      # on n'a pas de raison de se laisser mesurer.
+      DISABLE_TELEMETRY: "1"
+    depends_on:
+      base:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/heartbeat || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # Tunnel géré depuis le tableau de bord Cloudflare : on ne fournit qu'un jeton.
+  # Le nom d'hôte public (stats.cinqnotes.fr) et sa cible (http://umami:3000)
+  # se configurent là-bas, pas ici.
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?définir TUNNEL_TOKEN dans .env}
+    depends_on:
+      umami:
+        condition: service_started
+
+volumes:
+  donnees-umami:

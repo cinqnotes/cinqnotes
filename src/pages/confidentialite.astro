@@ -1,0 +1,132 @@
+---
+import Base from "~/layouts/Base.astro";
+
+/**
+ * Cette page ne doit contenir que des affirmations vérifiables dans le code.
+ * Chaque paragraphe correspond à un choix technique réel :
+ * - pas de cookie ni de tiers → src/layouts/Base.astro n'insère qu'Umami auto-hébergé
+ * - données de pratique locales → src/lib/stockage.ts, localStorage seul
+ * - e-mail → functions/api/inscription.ts, une table, deux colonnes utiles
+ */
+const CONTACT = "ousmane.k.konate@gmail.com";
+---
+
+<Base
+  titre="Confidentialité"
+  description="Aucun cookie, aucun traceur tiers, aucun compte. Ce que Cinq Notes collecte, où ça reste, et comment le faire supprimer."
+  chemin="/confidentialite"
+>
+  <article class="wrap">
+    <h1>Confidentialité</h1>
+    <p class="chapo">
+      Le principe tient en une phrase : <strong>ce que tu joues et ce que tu notes ne quittent pas
+      ton appareil.</strong> La seule donnée que je conserve chez moi, c'est ton adresse e-mail si tu
+      me l'as laissée. Tout ce qui suit est vérifiable dans le code, qui est ouvert.
+    </p>
+
+    <h2>Aucun cookie, aucun bandeau</h2>
+    <p>
+      Ce site ne dépose aucun cookie, ni technique ni publicitaire. C'est pour ça qu'il n'y a pas de
+      bandeau de consentement : il n'y a rien à consentir. Aucun script tiers n'est chargé — pas de
+      Google Analytics, pas de police distante, pas de bouton de réseau social. Les polices de
+      caractères sont servies depuis ce domaine.
+    </p>
+
+    <h2>Ta séance reste sur ton appareil</h2>
+    <p>
+      Les blocs cochés, ton journal quotidien, ta série de jours et les tonalités travaillées sont
+      stockés dans le <em>stockage local</em> de ton navigateur. Ils ne sont jamais envoyés nulle
+      part, et je n'y ai pas accès. Vider les données de site dans ton navigateur les efface
+      définitivement — il n'existe aucune copie ailleurs.
+    </p>
+    <p>
+      Conséquence à connaître : ces données ne suivent pas d'un appareil à l'autre, et un navigateur
+      en navigation privée les perd à la fermeture. C'est le prix de ne rien envoyer sur un serveur.
+    </p>
+
+    <h2>Mesure d'audience</h2>
+    <p>
+      J'utilise <a href="https://umami.is" rel="noopener">Umami</a>, que j'héberge moi-même. Il ne
+      dépose pas de cookie, n'utilise pas d'identifiant persistant et ne permet pas de reconstituer
+      un parcours individuel. Ce que je regarde : combien de personnes arrivent, combien démarrent
+      une séance, combien reviennent. Pas qui.
+    </p>
+    <p>
+      Les événements enregistrés sont anonymes et se limitent à des actions : démarrage de séance,
+      bloc terminé, exercice joué, changement de tonalité, génération d'une grille, inscription.
+      Aucun contenu de journal, aucun enregistrement, aucune adresse IP conservée.
+    </p>
+
+    <h2>Ton adresse e-mail, si tu la laisses</h2>
+    <ul>
+      <li><strong>Ce que je collecte :</strong> l'adresse, la date, et la page depuis laquelle tu
+        t'es inscrit.</li>
+      <li><strong>Pourquoi :</strong> te prévenir une fois, quand l'enregistrement des impros et le
+        montage mensuel existeront. Éventuellement te poser une question sur ton usage.</li>
+      <li><strong>Ce que je ne fais pas :</strong> aucune revente, aucun partage, aucune newsletter
+        régulière, aucune publicité.</li>
+      <li><strong>Combien de temps :</strong> jusqu'à ce que tu demandes la suppression, ou jusqu'à
+        l'abandon du projet — auquel cas la base est détruite.</li>
+      <li><strong>Où :</strong> dans une base gérée par Cloudflare, en Europe.</li>
+    </ul>
+
+    <h2>Tes droits</h2>
+    <p>
+      Tu peux à tout moment demander l'accès, la rectification ou la suppression de ton adresse.
+      Écris à <a href={`mailto:${CONTACT}`}>{CONTACT}</a> : je supprime la ligne et je te confirme.
+      Il n'y a pas de formulaire, pas de délai de rétractation, pas de procédure. Tu peux aussi
+      introduire une réclamation auprès de la <a href="https://www.cnil.fr" rel="noopener">CNIL</a>.
+    </p>
+
+    <h2>Si ça change</h2>
+    <p>
+      Les phases suivantes prévoient des comptes et une synchronisation. Le jour où ça arrivera,
+      cette page sera réécrite <em>avant</em> la mise en service, pas après. Un principe ne bougera
+      pas : l'audio et la vidéo de pratique restent sur l'appareil, et le montage mensuel est
+      fabriqué dans le navigateur.
+    </p>
+
+    <p class="retour"><a href="/mentions-legales">Mentions légales</a></p>
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: 40px;
+    padding-bottom: 20px;
+  }
+  h2 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 24px;
+    margin: 40px 0 12px;
+  }
+  p,
+  ul {
+    max-width: 70ch;
+    font-size: 14.5px;
+    color: var(--poussiere);
+  }
+  .chapo {
+    font-size: 16px;
+    color: var(--ivoire);
+    max-width: 66ch;
+  }
+  ul {
+    padding-left: 18px;
+  }
+  li {
+    margin-bottom: 8px;
+  }
+  strong {
+    color: var(--ivoire);
+    font-weight: 700;
+  }
+  .retour {
+    margin-top: 44px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>

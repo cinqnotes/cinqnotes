@@ -1,0 +1,19 @@
+# Projet Cloudflare Pages.
+#
+# Le déploiement ne passe PAS par l'intégration Git native de Cloudflare :
+# elle construirait le site directement depuis le dépôt et court-circuiterait
+# `test/fingering.spec.ts`, qui est bloquant et ne se contourne jamais
+# (CLAUDE.md §11). C'est la CI GitLab qui construit, teste, puis déploie.
+
+name = "cinqnotes"
+compatibility_date = "2026-08-01"
+pages_build_output_dir = "dist"
+
+# `database_id` est renseigné après création :
+#   npx wrangler d1 create cinqnotes
+# La commande affiche l'identifiant à recopier ici.
+[[d1_databases]]
+binding = "DB"
+database_name = "cinqnotes"
+database_id = "REMPLACER_APRES_CREATION"
+migrations_dir = "migrations"

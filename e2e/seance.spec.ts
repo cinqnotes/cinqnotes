@@ -148,6 +148,44 @@ test.describe("générateur d'impro", () => {
   });
 });
 
+test.describe("capture e-mail", () => {
+  test("le pot de miel est hors de portée d'un humain", async ({ page }) => {
+    await page.goto("/");
+    const piege = page.locator('input[name="piege"]');
+    await expect(piege).toHaveCount(1);
+
+    // Déporté hors de l'écran plutôt que masqué en `display:none` : un robot
+    // qui interprète le CSS saute les champs invisibles, mais remplit ceux-là.
+    // Il doit donc rester dans le flux — et hors de portée d'un humain.
+    const boite = await piege.boundingBox();
+    expect(boite, "le piège doit rester dans le flux").not.toBeNull();
+    expect(boite!.x + boite!.width, "le piège doit être hors de l'écran").toBeLessThan(0);
+
+    // Ni atteignable au clavier, ni annoncé par un lecteur d'écran.
+    await expect(piege).toHaveAttribute("tabindex", "-1");
+    await expect(page.locator(".piege")).toHaveAttribute("aria-hidden", "true");
+  });
+
+  test("sans endpoint, le formulaire ne prétend pas avoir enregistré", async ({ page }) => {
+    // Le pire comportement possible serait de remercier l'utilisateur alors que
+    // rien n'a été conservé : le signal de la phase 1 serait faux, et la
+    // personne attendrait un message qui n'arriverait jamais.
+    await page.goto("/");
+    await page.locator('.capture input[type="email"]').fill("test@exemple.fr");
+    await page.locator(".capture button[type=submit]").click();
+    await expect(page.locator(".capture .retour")).toHaveText(/pas encore active/i);
+  });
+
+  test("la promesse porte sur la fonctionnalité, pas sur le contenu", async ({ page }) => {
+    // Conséquence de D9 : mesurer l'appétit pour le curriculum mesurerait la
+    // chose qu'on a décidé de ne pas vendre.
+    await page.goto("/");
+    const capture = page.locator(".capture");
+    await expect(capture).toContainText(/enregistrer tes impros/i);
+    await expect(capture).toContainText(/montage/i);
+  });
+});
+
 test.describe("accessibilité", () => {
   test("la séance se pilote entièrement au clavier", async ({ page }) => {
     await page.goto("/");

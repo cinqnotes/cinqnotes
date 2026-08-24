@@ -53,7 +53,7 @@ const autresTonalites = TONALITES_IMPRO.filter((t) => t !== tonique);
 ---
 
 <Base
-  titre={`Improviser en ${nomTonique} — grille ${amb.nom.toLowerCase()} au piano`}
+  titre={`Improviser en ${nomTonique} — grille ${amb.nom.toLowerCase()}`}
   description={`Grille de 4 accords (${accords.map((a) => a.nom).join(" – ")}), les ${notesSures.length} notes qui ne peuvent pas sonner faux, et une contrainte pour ne pas tourner en rond. Tempo ${amb.tempo} BPM.`}
   chemin={`/impro/${idAmbiance}-${toniqueEnSlug(tonique)}`}
 >

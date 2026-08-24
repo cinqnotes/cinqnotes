@@ -26,9 +26,21 @@ const endpoint = import.meta.env.PUBLIC_EMAIL_ENDPOINT ?? "";
   <form data-endpoint={endpoint}>
     <label class="visuellement-cache" for="email">Adresse e-mail</label>
     <input id="email" name="email" type="email" required placeholder="ton@email.fr" />
+
+    {/* Pot de miel : un humain ne le voit ni ne l'atteint au clavier, un robot
+        le remplit. Sans lui, la table serait polluée en quelques jours — et
+        c'est elle qui porte le signal de décision de la phase 1. */}
+    <div class="piege" aria-hidden="true">
+      <label for="site-web">Ne pas remplir</label>
+      <input id="site-web" name="piege" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+
     <button class="bouton principal" type="submit">Préviens-moi</button>
   </form>
   <p class="retour" role="status" aria-live="polite"></p>
+  <p class="petit mentions">
+    Une seule chose t'attend : ce message-là. <a href="/confidentialite">Ce qu'on en fait</a>.
+  </p>
 </section>
 
 <script>
@@ -39,9 +51,10 @@ const endpoint = import.meta.env.PUBLIC_EMAIL_ENDPOINT ?? "";
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = new FormData(form).get("email");
+    const donnees = new FormData(form);
+    const email = donnees.get("email");
+    const piege = donnees.get("piege");
     const endpoint = form.dataset.endpoint;
-    mesurer("email_submit");
 
     if (!endpoint) {
       // Pas encore branché : on ne fait pas semblant d'avoir enregistré.
@@ -53,8 +66,14 @@ const endpoint = import.meta.env.PUBLIC_EMAIL_ENDPOINT ?? "";
       const r = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
+        // `source` dit d'où vient l'inscription : une page d'impro ou la
+        // routine. C'est ce qui orientera le travail de la phase 1.
+        body: JSON.stringify({ email, piege, source: location.pathname }),
       });
+      // L'événement n'est émis qu'en cas de succès : `email_submit` doit
+      // compter des inscriptions, pas des tentatives, sinon le seuil de
+      // décision de la phase 1 se lit sur un chiffre gonflé.
+      if (r.ok) mesurer("email_submit");
       if (retour) {
         retour.textContent = r.ok
           ? "C'est noté. Tu recevras un seul message, celui-là."
@@ -119,5 +138,19 @@ const endpoint = import.meta.env.PUBLIC_EMAIL_ENDPOINT ?? "";
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+  }
+  /* Le pot de miel est retiré du flux ET de l'ordre de tabulation. Un lecteur
+     d'écran l'ignore grâce à `aria-hidden`, un humain ne peut donc pas le
+     remplir par accident. */
+  .piege {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .mentions {
+    margin-top: 12px;
+    font-size: 12px;
   }
 </style>

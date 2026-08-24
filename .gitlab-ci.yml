@@ -19,9 +19,11 @@ default:
   before_script:
     - npm ci --cache .npm --prefer-offline
 
-variables:
-  # Surcharger dans les variables du projet au moment du déploiement.
-  SITE_URL: "https://roadmap-piano.exemple"
+# SITE_URL, PUBLIC_UMAMI_URL, PUBLIC_UMAMI_ID, PUBLIC_EMAIL_ENDPOINT,
+# CLOUDFLARE_API_TOKEN et CLOUDFLARE_ACCOUNT_ID sont des variables de PROJET
+# (Settings → CI/CD → Variables), pas des valeurs de ce fichier : y écrire un
+# domaine bouchon a déjà failli envoyer `roadmap-piano.exemple` en production.
+# Le contrôle `verification:sans-js` refuse désormais tout domaine en `.exemple`.
 
 # ---------------------------------------------------------------- qualité
 
@@ -91,12 +93,55 @@ verification:lighthouse:
 
 # ---------------------------------------------------------------- déploiement
 
-# L'hébergeur n'est pas encore tranché (Cloudflare Pages ou Netlify, CLAUDE.md §5).
-# Le job existe pour que la marche à suivre soit écrite, il ne tourne pas encore.
-deploiement:
+# Le déploiement passe par la CI, et JAMAIS par l'intégration Git native de
+# Cloudflare Pages : celle-ci construirait le site directement depuis le dépôt
+# et court-circuiterait `test:fingering`. Garder `wrangler` ici, c'est garder
+# I1 sur le chemin de la production.
+.wrangler: &wrangler
   stage: deploiement
-  needs: ["verification:sans-js", "verification:parcours", "verification:lighthouse"]
+  # On déploie l'artefact du job `build`, celui-là même que les trois jobs de
+  # vérification ont contrôlé. Reconstruire ici livrerait des octets que
+  # personne n'a vérifiés.
+  needs:
+    - job: build
+      artifacts: true
+    - job: verification:sans-js
+      artifacts: false
+    - job: verification:parcours
+      artifacts: false
+    - job: verification:lighthouse
+      artifacts: false
+
+deploiement:
+  <<: *wrangler
   rules:
-    - if: $CI_COMMIT_BRANCH == "main" && $DEPLOY_TOKEN
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CLOUDFLARE_API_TOKEN
+  environment:
+    name: production
+    url: $SITE_URL
   script:
-    - echo "À câbler une fois l'hébergeur choisi (wrangler pages deploy / netlify deploy)."
+    - npx wrangler pages deploy dist --project-name=cinqnotes --branch=main
+
+# Chaque branche obtient sa propre URL de prévisualisation, ce qui permet de
+# faire relire une page avant de la fusionner.
+previsualisation:
+  <<: *wrangler
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH && $CLOUDFLARE_API_TOKEN
+  environment:
+    name: previsualisation/$CI_COMMIT_REF_SLUG
+    url: https://$CI_COMMIT_REF_SLUG.cinqnotes.pages.dev
+  script:
+    - npx wrangler pages deploy dist --project-name=cinqnotes --branch=$CI_COMMIT_REF_SLUG
+
+# Les migrations D1 ne s'appliquent pas toutes seules : une table absente ferait
+# échouer silencieusement toutes les inscriptions. À lancer manuellement après
+# avoir ajouté une migration.
+migration:d1:
+  stage: deploiement
+  needs: []
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CLOUDFLARE_API_TOKEN
+  script:
+    - npx wrangler d1 migrations apply cinqnotes --remote

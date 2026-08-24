@@ -8,7 +8,8 @@
  *
  * Exécution : `npm run build && npm run verif:sansjs`.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 import { EXERCICES } from "~/content/curriculum/exercices";
 import { AMBIANCES, TONALITES_IMPRO } from "~/content/curriculum/grilles";
@@ -34,6 +35,21 @@ const neutre = (s: string): string =>
 
 const contient = (html: string, attendu: string) =>
   neutre(html).includes(neutre(attendu).trim());
+
+/** Tous les fichiers de `dist/`, récursivement, en chemins absolus. */
+function fichiers(racine: URL): string[] {
+  return readdirSync(racine, { recursive: true, withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => `${e.parentPath}/${e.name}`);
+}
+
+/** Les pages HTML servies, en chemins relatifs à `dist/`. */
+function pagesHtml(): string[] {
+  const base = fileURLToPath(DIST);
+  return fichiers(DIST)
+    .filter((f) => f.endsWith(".html"))
+    .map((f) => f.replace(base, "/"));
+}
 
 beforeAll(() => {
   expect(
@@ -151,9 +167,29 @@ describe("I2 — pages d'impro de longue traîne", () => {
 });
 
 describe("SEO technique", () => {
+  const domaine = new URL(process.env.SITE_URL ?? "https://cinqnotes.fr").host;
+
   it("le sitemap et robots.txt sont produits", () => {
     expect(lire("/sitemap-index.xml").length).toBeGreaterThan(0);
     expect(lire("/robots.txt")).toContain("Sitemap:");
+  });
+
+  it("robots.txt pointe sur le domaine réellement construit", () => {
+    // `robots.txt` était un fichier statique dont l'URL de sitemap était en dur.
+    // Il a vécu tout le développement avec un domaine bouchon et serait parti
+    // tel quel en production. Il est maintenant généré depuis `site`.
+    const robots = lire("/robots.txt");
+    expect(robots).toContain(`Sitemap: https://${domaine}/sitemap-index.xml`);
+  });
+
+  it("aucun domaine bouchon ne subsiste dans le site construit", () => {
+    // Le contrôle porte sur `dist/` entier, pas sur les sources : c'est le seul
+    // endroit où un oubli se voit avant qu'il ne soit servi.
+    const suspects = fichiers(DIST).filter((f) => {
+      if (!/\.(html|xml|txt|js|json)$/.test(f)) return false;
+      return readFileSync(f, "utf8").includes(".exemple");
+    });
+    expect(suspects.map((f) => f.replace(fileURLToPath(DIST), ""))).toEqual([]);
   });
 
   it("chaque page porte une URL canonique et une carte Open Graph", () => {
@@ -162,11 +198,38 @@ describe("SEO technique", () => {
       expect(html, chemin).toContain('rel="canonical"');
       expect(html, chemin).toContain('property="og:title"');
       expect(html, chemin).toContain('property="og:image"');
+      expect(html, chemin).toContain('property="og:site_name"');
     }
   });
 
-  it("aucun script d'analytics tant qu'Umami n'est pas configuré", () => {
-    // L'infra n'est pas câblée : le site ne doit charger aucun tiers.
-    expect(lire("/index.html")).not.toContain("data-website-id");
+  it("chaque page porte la marque dans son titre", () => {
+    for (const chemin of ["/index.html", "/roadmap/index.html", "/routine/lundi/index.html"]) {
+      expect(lire(chemin), chemin).toMatch(/<title>[^<]+· Cinq Notes<\/title>/);
+    }
+  });
+
+  it("les titres tiennent dans ce qu'affiche un moteur de recherche", () => {
+    // Au-delà d'une soixantaine de caractères, la fin du titre est tronquée
+    // dans les résultats — donc la marque disparaîtrait.
+    for (const chemin of pagesHtml()) {
+      const titre = /<title>([^<]+)<\/title>/.exec(lire(chemin))?.[1] ?? "";
+      expect(titre.length, `${chemin} — « ${titre} »`).toBeLessThanOrEqual(65);
+    }
+  });
+
+  it("le script de mesure suit exactement la configuration", () => {
+    // Vrai dans les deux sens : rien en local sans variables, le script en CI
+    // quand Umami est configuré. Aucun tiers ne peut s'inviter par accident.
+    const configure = Boolean(process.env.PUBLIC_UMAMI_URL && process.env.PUBLIC_UMAMI_ID);
+    expect(lire("/index.html").includes("data-website-id")).toBe(configure);
+  });
+
+  it("les pages légales existent et sont liées depuis chaque page", () => {
+    expect(lire("/mentions-legales/index.html").length).toBeGreaterThan(0);
+    expect(lire("/confidentialite/index.html").length).toBeGreaterThan(0);
+    for (const chemin of ["/index.html", "/a-propos/index.html"]) {
+      expect(lire(chemin), chemin).toContain('href="/mentions-legales"');
+      expect(lire(chemin), chemin).toContain('href="/confidentialite"');
+    }
   });
 });
