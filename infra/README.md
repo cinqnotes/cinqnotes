@@ -65,7 +65,9 @@ npx wrangler pages project create cinqnotes --production-branch=main
 **Ne pas connecter le dépôt Git dans le tableau de bord Cloudflare.** L'intégration
 native reconstruirait le site directement depuis le dépôt et court-circuiterait
 `test/fingering.spec.ts`, qui est bloquant et ne se contourne jamais
-(`CLAUDE.md §11`). C'est la CI GitLab qui construit, vérifie, puis pousse.
+(`CLAUDE.md §11`). C'est GitHub Actions qui construit, vérifie, puis pousse.
+La tentation est particulièrement forte ici : Cloudflare propose la connexion au
+dépôt GitHub en deux clics, sur la page même de création du projet.
 
 Ensuite, dans le tableau de bord du projet :
 
@@ -136,10 +138,12 @@ Récupérer le **Website ID** affiché : c'est `PUBLIC_UMAMI_ID`.
 
 ---
 
-## 6. Variables de CI GitLab
+## 6. Variables et secrets GitHub
 
-Settings → CI/CD → Variables. Toutes en *Protected*, les deux dernières en
-*Masked* également.
+Settings → Secrets and variables → **Actions**. La distinction compte :
+
+**Onglet « Variables »** — publiques, elles finissent dans le HTML servi. Les
+mettre en secret ne protégerait rien et les rendrait illisibles dans les logs.
 
 | Variable | Valeur |
 |---|---|
@@ -147,24 +151,46 @@ Settings → CI/CD → Variables. Toutes en *Protected*, les deux dernières en
 | `PUBLIC_UMAMI_URL` | `https://stats.cinqnotes.com/script.js` |
 | `PUBLIC_UMAMI_ID` | l'identifiant de l'étape 5 |
 | `PUBLIC_EMAIL_ENDPOINT` | `/api/inscription` |
+
+**Onglet « Secrets »** — jamais affichés, masqués dans les logs.
+
+| Secret | Valeur |
+|---|---|
 | `CLOUDFLARE_ACCOUNT_ID` | visible dans l'URL du tableau de bord |
 | `CLOUDFLARE_API_TOKEN` | le jeton de l'étape 4 |
 
-Tant que `CLOUDFLARE_API_TOKEN` est absent, les jobs de déploiement ne se
-déclenchent pas : le pipeline s'arrête après les vérifications. C'est voulu — on
-peut pousser du code avant d'avoir l'infra.
+Tant que `CLOUDFLARE_API_TOKEN` est absent, les jobs de déploiement échouent
+mais tout le reste passe : on peut pousser du code avant d'avoir l'infra.
+
+Créer aussi l'environnement `production` (Settings → Environments) si l'on veut
+exiger une validation manuelle avant chaque mise en production. Facultatif à ce
+stade.
 
 ---
 
 ## 7. Premier déploiement
 
 ```sh
-git remote add origin <url-du-projet-gitlab>
+git remote add origin git@github.com:<compte>/cinqnotes.git
 git push -u origin main
 ```
 
-Le pipeline enchaîne : types → tests (dont `fingering`, bloquant) → build →
-vérification sans JS, parcours Playwright, budget Lighthouse → déploiement.
+Le pipeline enchaîne : types, doigtés (bloquant) et tests en parallèle → build →
+vérification sans JS, parcours Playwright et budget Lighthouse en parallèle →
+déploiement.
+
+**Appliquer la migration D1 avant le premier envoi de formulaire :**
+Actions → *Migration D1* → Run workflow → `remote`. Sans la table, toutes les
+inscriptions échouent — le formulaire n'affiche qu'une erreur générique et
+aucune adresse n'est conservée.
+
+Pour diagnostiquer une inscription qui échoue en production :
+
+```sh
+npx wrangler pages deployment tail --project-name=cinqnotes
+```
+
+La fonction journalise la cause côté serveur sans jamais l'exposer au client.
 
 ---
 

@@ -3,7 +3,8 @@
 # Le déploiement ne passe PAS par l'intégration Git native de Cloudflare :
 # elle construirait le site directement depuis le dépôt et court-circuiterait
 # `test/fingering.spec.ts`, qui est bloquant et ne se contourne jamais
-# (CLAUDE.md §11). C'est la CI GitLab qui construit, teste, puis déploie.
+# (CLAUDE.md §11). C'est GitHub Actions qui construit, teste, puis déploie.
+# La tentation est forte sur GitHub, où l'intégration se branche en deux clics.
 
 name = "cinqnotes"
 compatibility_date = "2026-08-01"
@@ -15,5 +16,5 @@ pages_build_output_dir = "dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "cinqnotes"
-database_id = "REMPLACER_APRES_CREATION"
+database_id = "8a884cae-e290-4f6e-a70a-1439e1dc7e6f"
 migrations_dir = "migrations"

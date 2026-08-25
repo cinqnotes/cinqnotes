@@ -140,21 +140,22 @@ l'utilisateur à une référence attendue est refusée, quelle que soit sa simpl
 
 ## 5. Stack cible
 
-Choisie pour recouper les compétences existantes (DevOps/Cloud, Kubernetes, GitLab CI, Go/Gin) et
+Choisie pour recouper les compétences existantes (DevOps/Cloud, Kubernetes, CI, Go/Gin) et
 pour minimiser le travail de frontend, qui n'est pas le point fort.
 
 | Couche | Choix | Motif |
 |---|---|---|
 | Site | **Astro** + îlots Svelte | Statique par défaut → satisfait I2 sans effort. Les îlots isolent l'outil interactif. |
 | Styles | CSS natif, variables, pas de framework | Le MVP en a déjà un cohérent. Tailwind n'apporte rien ici. |
-| Hébergement (phase 0-1) | Cloudflare Pages ou Netlify | Gratuit, CDN mondial, TLS. **Pas le homelab** : IP résidentielle, uptime, et un test de distribution ne doit pas échouer pour cause d'infra. |
+| Hébergement (phase 0-1) | **Cloudflare Pages** (arrêté en phase 0) | Gratuit, CDN mondial, TLS. **Pas le homelab** : IP résidentielle, uptime, et un test de distribution ne doit pas échouer pour cause d'infra. |
 | Analytics | **Umami** auto-hébergé sur le homelab | Sans cookie, pas de bandeau consentement, données chez soi. |
 | API (phase 2+) | **Go + Gin** | Déjà maîtrisé sur un autre projet. Binaire unique, image Docker minimale. |
 | Base (phase 2+) | PostgreSQL | |
 | Auth (phase 2+) | Lien magique par e-mail | Pas de mot de passe à stocker, friction minimale. |
 | Paiement (phase 4) | Stripe Billing | |
-| CI/CD | GitLab CI | Déjà en place. |
+| CI/CD | **GitHub Actions** | Le dépôt est sur GitHub. Le déploiement passe par le pipeline et jamais par l'intégration Git native de Cloudflare Pages, qui court-circuiterait le test de doigtés (I1). |
 | Registry | Harbor (homelab) pour l'API | |
+| Capture e-mail (phase 0-1) | Cloudflare Pages Function + D1 | Aucun tiers, et faite pour mourir proprement quand l'API Go la remplacera. |
 | Prod API (phase 2+) | VPS Hetzner ou k8s homelab | À trancher au moment venu selon le trafic réel. |
 
 ---
@@ -265,7 +266,7 @@ Tâches :
 6. Page « à propos » assumant le positionnement : autodidacte qui construit l'outil qu'il voulait
    pour lui-même. Pas de posture d'expert.
 7. `robots.txt`, `sitemap.xml`, Open Graph avec capture d'écran du clavier animé.
-8. Pipeline GitLab CI : lint, `test/fingering.spec.ts`, build, budget Lighthouse (perf ≥ 90,
+8. Pipeline GitHub Actions : lint, `test/fingering.spec.ts`, build, budget Lighthouse (perf ≥ 90,
    a11y ≥ 95), déploiement automatique.
 
 **Definition of done.** Page en ligne sur domaine propre, score Lighthouse tenu, HTML complet
@@ -405,9 +406,9 @@ pas dans le plan. À rouvrir si la conversion des sources 1 et 2 déçoit.
 | D2 | Le MVP HTML est le produit de la phase 0 | Pas de réécriture avant validation. |
 | D3 | Cible : adulte autodidacte visant improvisation et composition | Segment mal servi, et c'est le besoin réellement compris. |
 | D4 | Français d'abord | Marché moins disputé que l'anglophone, et langue maternelle du contenu. |
-| D5 | Pas de détection audio/MIDI | Fossé technique inatteignable en solo. |
+| D5 | Pas de détection audio/MIDI | Fossé technique inatteignable en solo. **Précisé par D13 :** c'est l'*évaluation* du jeu qui est exclue, pas la captation. |
 | D6 | Astro plutôt que SvelteKit en phase 0 | Statique par défaut, donc I2 gratuit. Migration possible si l'API impose du SSR. |
-| D7 | Hébergement public hors homelab | Le homelab reste pour la CI, les previews et Umami. |
+| D7 | Hébergement public hors homelab | Le homelab ne garde qu'Umami (et Harbor pour la future API). La CI et les prévisualisations sont chez GitHub et Cloudflare : un test de distribution ne doit pas échouer pour cause d'IP résidentielle. |
 | D8 | Le curriculum reste entièrement gratuit et public, toutes phases confondues | C'est l'actif d'acquisition et le seul canal SEO. Le paywaller reviendrait à cacher ce qui fait venir les gens — et une suite d'exercices se recopie en dix minutes. |
 | D9 | La monétisation portera sur la **boucle quotidienne** (suivi d'habitude, historique, capture, montage mensuel, synchro), jamais sur le contenu | Vendre un outil ne demande aucune légitimité pédagogique ; vendre une pédagogie qu'on n'a pas parcourue en demande une. Ça résout la question ouverte §10 au lieu de la reporter. |
 | D10 | Le générateur d'impro est le point d'entrée du tunnel, la routine est la couche de rétention | Le trafic froid n'est pas assis devant un piano. Une routine seule n'a rien à offrir à qui découvre le site depuis son téléphone. |

@@ -11,12 +11,19 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // Avec `BASE_URL`, on teste un site déjà servi — c'est ce que fait la CI, qui
+  // lance `wrangler pages dev` pour exercer aussi la fonction d'inscription.
   webServer: process.env.BASE_URL
     ? undefined
     : {
-        command: "npm run dev",
+        // On teste le site CONSTRUIT, pas le serveur de développement.
+        // Deux raisons : c'est ce que la CI et les visiteurs obtiennent
+        // réellement ; et `astro dev` peut se démoniser selon l'environnement,
+        // auquel cas Playwright voit sa commande « sortir immédiatement » et
+        // échoue pour une raison sans rapport avec le code.
+        command: "npm run build && npm run preview",
         url: "http://localhost:4321",
         reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
+        timeout: 120_000,
       },
 });

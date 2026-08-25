@@ -95,8 +95,13 @@ const inscrire = async ({ request, env }: Contexte): Promise<Response> => {
     )
       .bind(email, new Date().toISOString(), source)
       .run();
-  } catch {
-    // Ne jamais renvoyer le détail d'une erreur de base à un client public.
+  } catch (erreur) {
+    // Journalisé côté serveur (visible via `wrangler pages deployment tail`),
+    // jamais renvoyé au client : le détail d'une erreur de base n'a rien à
+    // faire dans une réponse publique. Sans cette trace, la panne la plus
+    // probable — la table absente parce que la migration n'a pas été appliquée
+    // — se présente comme un 500 muet, impossible à diagnostiquer à distance.
+    console.error("inscription : échec d'écriture D1", erreur);
     return new Response("Enregistrement impossible", { status: 500 });
   }
 

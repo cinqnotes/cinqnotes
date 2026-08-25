@@ -190,7 +190,13 @@ test.describe("capture e-mail", () => {
     await expect(page.locator(".piege")).toHaveAttribute("aria-hidden", "true");
   });
 
+  // `PUBLIC_EMAIL_ENDPOINT` est vide en local et posé en CI, où les parcours
+  // tournent contre `wrangler pages dev` — donc contre la vraie fonction.
+  // Les deux chemins sont couverts, chacun là où il existe réellement.
+  const endpointCable = Boolean(process.env.PUBLIC_EMAIL_ENDPOINT);
+
   test("sans endpoint, le formulaire ne prétend pas avoir enregistré", async ({ page }) => {
+    test.skip(endpointCable, "endpoint câblé dans cet environnement");
     // Le pire comportement possible serait de remercier l'utilisateur alors que
     // rien n'a été conservé : le signal de la phase 1 serait faux, et la
     // personne attendrait un message qui n'arriverait jamais.
@@ -198,6 +204,20 @@ test.describe("capture e-mail", () => {
     await page.locator('.capture input[type="email"]').fill("test@exemple.fr");
     await page.locator(".capture button[type=submit]").click();
     await expect(page.locator(".capture .retour")).toHaveText(/pas encore active/i);
+  });
+
+  test("avec endpoint, l'inscription aboutit vraiment", async ({ page }) => {
+    test.skip(!endpointCable, "endpoint non câblé — build local sans variables");
+    await page.goto("/impro/suspendu-mi");
+    await page.locator('.capture input[type="email"]').fill("parcours@exemple.fr");
+    await page.locator(".capture button[type=submit]").click();
+    await expect(page.locator(".capture .retour")).toHaveText(/c'est noté/i);
+
+    // Réinscription : même message, et la fonction n'a pas créé de doublon.
+    await page.reload();
+    await page.locator('.capture input[type="email"]').fill("parcours@exemple.fr");
+    await page.locator(".capture button[type=submit]").click();
+    await expect(page.locator(".capture .retour")).toHaveText(/c'est noté/i);
   });
 
   test("la promesse porte sur la fonctionnalité, pas sur le contenu", async ({ page }) => {

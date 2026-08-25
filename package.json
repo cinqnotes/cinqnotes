@@ -30,6 +30,7 @@
     "@types/node": "^26.3.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11",
+    "wait-on": "^9.1.0",
     "wrangler": "^4.125.0"
   }
 }
