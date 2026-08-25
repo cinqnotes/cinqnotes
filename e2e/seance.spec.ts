@@ -8,10 +8,19 @@ import { expect, test, type Page } from "@playwright/test";
  * Le contenu de la planche est rendu au build : il est visible avant même que
  * l'îlot soit hydraté. Les commandes, elles, restent désactivées jusque-là —
  * on attend donc l'hydratation plutôt que de cliquer dans le vide.
+ *
+ * `jour` épingle la séance affichée. Sans lui, la planche bascule sur le jour
+ * réel à l'hydratation : tout test qui nomme un bloc précis passerait le lundi
+ * et échouerait les six autres jours. La CI serait rouge par intermittence, et
+ * un test qu'on ne croit plus est un test qu'on finit par désactiver.
  */
-async function planchePrete(page: Page) {
+async function planchePrete(page: Page, jour?: "Lun" | "Mar" | "Mer" | "Jeu" | "Ven" | "Sam" | "Dim") {
   const planche = page.locator(".planche");
   await expect(planche.locator(".case").first()).toBeEnabled();
+  if (jour) {
+    await planche.locator(".onglet", { hasText: jour }).click();
+    await expect(planche.locator(`.onglet[aria-selected="true"]`)).toHaveText(new RegExp(jour));
+  }
   return planche;
 }
 
@@ -20,6 +29,19 @@ test.describe("séance quotidienne", () => {
     await page.goto("/", { waitUntil: "commit" });
     // On ne ment pas à l'utilisateur : tant que rien ne répond, rien n'est actif.
     await expect(page.locator(".planche .bloc").first()).toBeVisible();
+  });
+
+  test("à l'hydratation, la planche bascule sur le jour réel", async ({ page }) => {
+    // Comportement voulu : la page est construite sur lundi (le build ne peut
+    // pas connaître le jour du visiteur), puis l'îlot corrige à l'hydratation.
+    // C'est aussi ce qui rend tout test nommant un bloc précis dépendant du
+    // jour — d'où `planchePrete(page, "Lun")` partout où c'est le cas.
+    const attendu = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][new Date().getDay()]!;
+    await page.goto("/");
+    const planche = await planchePrete(page);
+    await expect(planche.locator('.onglet[aria-selected="true"]')).toHaveText(
+      new RegExp(attendu),
+    );
   });
 
   test("cocher un bloc met à jour l'avancement et la série", async ({ page }) => {
@@ -76,7 +98,9 @@ test.describe("séance quotidienne", () => {
 
   test("le chronomètre démarre sur le bloc choisi", async ({ page }) => {
     await page.goto("/");
-    const planche = await planchePrete(page);
+    // Épinglé sur lundi : le premier bloc du samedi dure 10 min, celui du
+    // dimanche 15, et l'assertion sur « 05:00 » ne vaudrait que cinq jours sur sept.
+    const planche = await planchePrete(page, "Lun");
     await planche.locator(".chrono").first().click();
     await expect(planche.locator(".horloge")).toHaveText("05:00");
     await expect(planche.locator(".en-cours")).toContainText("Technique");
@@ -84,7 +108,7 @@ test.describe("séance quotidienne", () => {
 
   test("sélectionner un bloc affiche son doigté", async ({ page }) => {
     await page.goto("/");
-    const planche = await planchePrete(page);
+    const planche = await planchePrete(page, "Lun");
     await planche
       .locator(".lien-bloc", { hasText: "Triades majeures + les 3 renversements" })
       .click();
@@ -94,7 +118,7 @@ test.describe("séance quotidienne", () => {
 
   test("changer de tonalité ne propose que les doigtés vérifiés (I1)", async ({ page }) => {
     await page.goto("/");
-    const planche = await planchePrete(page);
+    const planche = await planchePrete(page, "Lun");
     await planche
       .locator(".lien-bloc", { hasText: "Gamme de Do, mains séparées puis ensemble" })
       .click();
