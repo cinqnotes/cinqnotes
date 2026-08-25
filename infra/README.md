@@ -229,6 +229,44 @@ Puis, à la main :
 
 ---
 
+## Le site est injoignable — dans quel ordre chercher
+
+Trois questions, dans cet ordre. Chacune élimine une cause, et la première qui
+répond « non » est la réponse.
+
+**1. Le pipeline a-t-il seulement déployé ?**
+Actions → dernière exécution sur `main`. Si le job `deploiement` est rouge ou
+absent, rien n'a été publié — inutile de regarder le DNS. Le job commence par
+nommer précisément ce qui manque.
+
+**2. Le projet Pages existe-t-il, avec un déploiement ?**
+
+```sh
+npx wrangler pages project list
+npx wrangler pages deployment list --project-name=cinqnotes
+```
+
+Un projet sans déploiement, ou pas de projet du tout, donne un `522` sur
+`cinqnotes.pages.dev`. Le créer : étape 3.
+
+**3. Le domaine est-il rattaché au projet ?**
+
+```sh
+dig +short cinqnotes.com A
+```
+
+Une réponse vide signifie que le domaine personnalisé n'est pas attaché, même si
+la zone existe chez Cloudflare et que les serveurs de noms sont bons. C'est
+l'erreur la plus fréquente : acheter le domaine ne le relie pas au projet.
+Le rattacher dans **Pages → cinqnotes → Custom domains** (étape 3) ; Cloudflare
+crée alors l'enregistrement tout seul.
+
+Vérifier au passage que `cinqnotes.pages.dev` répond, avant de suspecter le
+domaine : si l'URL du projet fonctionne et pas le domaine, le problème est au
+rattachement ; si aucune des deux ne fonctionne, il est au déploiement.
+
+---
+
 ## Ce qui tombe en panne, et ce que ça casse
 
 | Panne | Conséquence |

@@ -167,7 +167,11 @@ describe("I2 — pages d'impro de longue traîne", () => {
 });
 
 describe("SEO technique", () => {
-  const domaine = new URL(process.env.SITE_URL ?? "https://cinqnotes.com").host;
+  // `||` et non `??` : GitHub Actions pose une CHAÎNE VIDE quand une variable de
+  // dépôt n'est pas définie, pas `undefined`. `??` ne se déclenche alors pas, et
+  // `new URL("")` lève — ce qui a fait tomber tout ce fichier en CI.
+  // Toute lecture d'environnement du projet suit désormais cette règle.
+  const domaine = new URL(process.env.SITE_URL || "https://cinqnotes.com").host;
 
   it("le sitemap et robots.txt sont produits", () => {
     expect(lire("/sitemap-index.xml").length).toBeGreaterThan(0);

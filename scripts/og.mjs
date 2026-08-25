@@ -7,7 +7,9 @@
 import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
-const URL_OG = process.env.OG_URL ?? "http://localhost:4321/og";
+// `||` et non `??` : une variable d'environnement non définie peut arriver
+// comme chaîne vide selon l'appelant.
+const URL_OG = process.env.OG_URL || "http://localhost:4321/og";
 const SORTIE = fileURLToPath(new URL("../public/og-clavier.png", import.meta.url));
 
 const navigateur = await chromium.launch();

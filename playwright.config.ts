@@ -7,7 +7,11 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "list" : "line",
   use: {
-    baseURL: process.env.BASE_URL ?? "http://localhost:4321",
+    // `||` et non `??` : une variable non définie en CI arrive comme chaîne
+    // vide, pas comme `undefined`. Avec `??`, `baseURL` valait "" et le
+    // ternaire de `webServer` plus bas prenait l'autre branche — les deux
+    // réglages se contredisaient.
+    baseURL: process.env.BASE_URL || "http://localhost:4321",
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
