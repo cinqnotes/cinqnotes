@@ -53,7 +53,7 @@ services:
       start_period: 60s
 
   # Tunnel géré depuis le tableau de bord Cloudflare : on ne fournit qu'un jeton.
-  # Le nom d'hôte public (stats.cinqnotes.fr) et sa cible (http://umami:3000)
+  # Le nom d'hôte public (stats.cinqnotes.com) et sa cible (http://umami:3000)
   # se configurent là-bas, pas ici.
   tunnel:
     image: cloudflare/cloudflared:latest

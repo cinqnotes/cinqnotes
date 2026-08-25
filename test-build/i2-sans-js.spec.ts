@@ -167,7 +167,7 @@ describe("I2 — pages d'impro de longue traîne", () => {
 });
 
 describe("SEO technique", () => {
-  const domaine = new URL(process.env.SITE_URL ?? "https://cinqnotes.fr").host;
+  const domaine = new URL(process.env.SITE_URL ?? "https://cinqnotes.com").host;
 
   it("le sitemap et robots.txt sont produits", () => {
     expect(lire("/sitemap-index.xml").length).toBeGreaterThan(0);

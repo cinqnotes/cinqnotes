@@ -4,7 +4,7 @@ import sitemap from "@astrojs/sitemap";
 
 // SITE_URL surcharge le domaine en CI. La valeur par défaut est le domaine réel :
 // un build local doit produire exactement ce qui partira en production.
-const site = process.env.SITE_URL || "https://cinqnotes.fr";
+const site = process.env.SITE_URL || "https://cinqnotes.com";
 
 export default defineConfig({
   site,

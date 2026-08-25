@@ -8,26 +8,25 @@ Compter une heure, dont une bonne partie d'attente de propagation DNS.
 
 ---
 
-## 0. Avant tout — vérifier le domaine
+## 1. Domaine — fait
 
-`cinqnotes.fr` et `cinqnotes.com` sont libres **au DNS**, ce qui ne prouve pas
-qu'ils sont disponibles à l'achat : un domaine peut être déposé sans être
-délégué. Vérifier chez le registrar avant d'aller plus loin.
+**`cinqnotes.com` est acheté.** C'est le domaine canonique : il est écrit dans
+`astro.config.mjs`, dans `.env.example` et dans les contrôles de build.
 
-Si le nom est pris, seules trois choses changent : `MARQUE` dans
-`src/layouts/Base.astro`, la valeur par défaut de `site` dans `astro.config.mjs`,
-et `name` dans `wrangler.toml`.
+Deux conséquences à traiter, l'une maintenant, l'autre au lancement :
 
----
+- **`cinqnotes.fr`** reste libre. Le prendre coûte une dizaine d'euros par an et
+  évite qu'on s'en empare après un lancement réussi — le contenu est en français,
+  c'est le premier réflexe de quelqu'un qui chercherait le site. À rediriger vers
+  le `.com`, sans jamais servir les deux : un contenu identique sur deux domaines
+  se pénalise tout seul.
+- **Un `.com` ne porte aucun signal géographique**, là où un `.fr` en donne un.
+  Comme la cible est francophone (D4), il faudra le compenser dans la Search
+  Console : Paramètres → Ciblage géographique → France. Ce n'est ni bloquant ni
+  urgent, mais ça se perd de vue.
 
-## 1. Domaine
-
-Cloudflare → **Domain Registration** → Register Domains → `cinqnotes.fr`.
-
-Prendre `.com` aussi et le rediriger : ça coûte une dizaine d'euros par an et
-évite qu'on le prenne après un lancement réussi.
-
-L'achat chez Cloudflare crée automatiquement la zone DNS. Rien à déléguer.
+Si la zone DNS n'a pas été créée automatiquement, la créer dans Cloudflare avant
+la suite : le projet Pages et le tunnel en dépendent tous les deux.
 
 ---
 
@@ -72,7 +71,7 @@ Ensuite, dans le tableau de bord du projet :
 
 - **Settings → Bindings → D1** : lier `DB` à la base `cinqnotes`.
   Sans ce binding, la fonction d'inscription renvoie 500 à chaque appel.
-- **Custom domains** : ajouter `cinqnotes.fr` et `www.cinqnotes.fr`.
+- **Custom domains** : ajouter `cinqnotes.com` et `www.cinqnotes.com`.
 
 ---
 
@@ -104,7 +103,7 @@ Toujours dans le tunnel, onglet **Public Hostnames**, ajouter :
 | Champ | Valeur |
 |---|---|
 | Subdomain | `stats` |
-| Domain | `cinqnotes.fr` |
+| Domain | `cinqnotes.com` |
 | Service | `HTTP` → `umami:3000` |
 
 `umami:3000` est le nom du service dans le réseau Docker, pas une adresse de
@@ -122,7 +121,7 @@ docker compose up -d
 docker compose logs -f umami
 ```
 
-Ouvrir `https://stats.cinqnotes.fr`. Identifiants par défaut : `admin` /
+Ouvrir `https://stats.cinqnotes.com`. Identifiants par défaut : `admin` /
 `umami`. **Changer le mot de passe immédiatement** — le tunnel rend cette
 instance publique.
 
@@ -131,7 +130,7 @@ Puis **Settings → Websites → Add website** :
 | Champ | Valeur |
 |---|---|
 | Name | Cinq Notes |
-| Domain | cinqnotes.fr |
+| Domain | cinqnotes.com |
 
 Récupérer le **Website ID** affiché : c'est `PUBLIC_UMAMI_ID`.
 
@@ -144,8 +143,8 @@ Settings → CI/CD → Variables. Toutes en *Protected*, les deux dernières en
 
 | Variable | Valeur |
 |---|---|
-| `SITE_URL` | `https://cinqnotes.fr` |
-| `PUBLIC_UMAMI_URL` | `https://stats.cinqnotes.fr/script.js` |
+| `SITE_URL` | `https://cinqnotes.com` |
+| `PUBLIC_UMAMI_URL` | `https://stats.cinqnotes.com/script.js` |
 | `PUBLIC_UMAMI_ID` | l'identifiant de l'étape 5 |
 | `PUBLIC_EMAIL_ENDPOINT` | `/api/inscription` |
 | `CLOUDFLARE_ACCOUNT_ID` | visible dans l'URL du tableau de bord |
@@ -173,19 +172,19 @@ vérification sans JS, parcours Playwright, budget Lighthouse → déploiement.
 
 ```sh
 # Le sitemap pointe sur le bon domaine
-curl -s https://cinqnotes.fr/robots.txt
+curl -s https://cinqnotes.com/robots.txt
 
 # 34 URL, aucune sur /og
-curl -s https://cinqnotes.fr/sitemap-index.xml | grep -c "<loc>"
+curl -s https://cinqnotes.com/sitemap-index.xml | grep -c "<loc>"
 
 # L'endpoint refuse tout sauf POST
-curl -s -o /dev/null -w "%{http_code}\n" https://cinqnotes.fr/api/inscription   # 405
+curl -s -o /dev/null -w "%{http_code}\n" https://cinqnotes.com/api/inscription   # 405
 
 # Les parcours passent contre la production
-BASE_URL=https://cinqnotes.fr npx playwright test
+BASE_URL=https://cinqnotes.com npx playwright test
 
 # Budget tenu en conditions réelles, script Umami chargé
-npx lighthouse https://cinqnotes.fr --view
+npx lighthouse https://cinqnotes.com --view
 ```
 
 Puis, à la main :
@@ -197,7 +196,7 @@ Puis, à la main :
    ```
 2. Faire une séance complète depuis un téléphone : cocher un bloc, lancer un
    exercice, changer de tonalité, générer une grille.
-3. Ouvrir `https://stats.cinqnotes.fr` et vérifier que les événements arrivent :
+3. Ouvrir `https://stats.cinqnotes.com` et vérifier que les événements arrivent :
    `session_start`, `block_complete`, `exercise_play`, `key_change`,
    `impro_generate`, `email_submit`. C'est la dernière ligne de la
    `Definition of done` de `CLAUDE.md §8 phase 0`.
