@@ -10,7 +10,7 @@
  * vérifie les deux façons de se tromper : ne pas compter un retour réel, ou
  * compter plusieurs fois la même personne.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /** Amorce l'historique local comme si la personne pratiquait depuis 20 jours. */
 async function amorcer(page: import("@playwright/test").Page, joursEcoules: number) {

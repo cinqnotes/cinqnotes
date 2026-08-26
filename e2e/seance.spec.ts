@@ -2,7 +2,8 @@
  * Parcours de séance : ce qu'un utilisateur fait réellement.
  * On vérifie la boucle quotidienne — c'est elle le produit (D9).
  */
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, surveillerMesure, test } from "./fixtures";
 
 /**
  * Le contenu de la planche est rendu au build : il est visible avant même que
@@ -253,6 +254,29 @@ test.describe("capture e-mail", () => {
     const capture = page.locator(".capture");
     await expect(capture).toContainText(/enregistrer tes impros/i);
     await expect(capture).toContainText(/montage/i);
+  });
+});
+
+test.describe("étanchéité de la mesure", () => {
+  test("un parcours de test n'émet aucune mesure vers la production", async ({ page }) => {
+    // Régression réelle : la CI construisait le site AVEC PUBLIC_UMAMI_URL puis
+    // lançait Playwright dessus. Chaque exécution injectait une vingtaine de
+    // pages vues et plusieurs événements dans les statistiques de production,
+    // depuis les runners GitHub — donc étiquetés « États-Unis ». Le pipeline
+    // fabriquait du faux trafic dans les chiffres qui décident de la phase 2.
+    const reseau = surveillerMesure(page);
+
+    await page.goto("/");
+    const planche = await planchePrete(page, "Lun");
+    await planche.locator(".case").first().click();
+    await page.locator("#generateur .generateur").getByRole("button", { name: /Jouer la grille/ }).click();
+    await page.goto("/roadmap");
+    await page.waitForTimeout(300);
+
+    expect(
+      reseau.abouties,
+      "une requête de mesure a atteint la production depuis un test",
+    ).toEqual([]);
   });
 });
 
