@@ -225,7 +225,7 @@ jobs:
           [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] || { echo "::error::Secret CLOUDFLARE_API_TOKEN absent (infra/README.md §4 et §6)"; manque=1; }
           [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ] || { echo "::error::Secret CLOUDFLARE_ACCOUNT_ID absent (infra/README.md §6)"; manque=1; }
           [ -n "${{ vars.SITE_URL }}" ] || { echo "::error::Variable SITE_URL absente (infra/README.md §6)"; manque=1; }
-          [ "$manque" = "0" ] || { echo "::error::Le projet Pages doit aussi exister : npx wrangler pages project create cinqnotes --production-branch=main"; exit 1; }
+          [ "$manque" = "0" ] || { echo "::notice::Vérifier aussi que le projet Pages existe : npx wrangler pages project list"; exit 1; }
 
       - run: npx wrangler pages deploy dist --project-name=cinqnotes --branch=main
         env:

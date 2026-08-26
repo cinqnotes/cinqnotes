@@ -95,10 +95,24 @@ domaine.
 
 ## 5. Umami sur le homelab
 
-D'abord le tunnel, pour n'avoir aucun port à ouvrir :
+### Ce qu'est le tunnel, en deux phrases
+
+Cloudflare Zero Trust est une suite de sécurité réseau ; **on n'en utilise qu'une
+brique, le tunnel.** Le démon `cloudflared`, sur le homelab, ouvre une connexion
+**sortante** vers Cloudflare ; les requêtes pour `stats.cinqnotes.com` redescendent
+par cette connexion déjà ouverte, puis sont transmises à `umami:3000` en local.
+
+Donc : aucun port ouvert, aucune redirection NAT, l'IP résidentielle n'est jamais
+publiée, et le TLS est géré à l'edge. C'est toute la raison de ce choix.
+
+### 5.1 Créer le tunnel (tableau de bord)
 
 Cloudflare → **Zero Trust → Networks → Tunnels → Create a tunnel** → Cloudflared
-→ nommer `homelab` → choisir **Docker**. Copier le jeton affiché.
+→ nommer `homelab` → choisir **Docker**.
+
+Cloudflare affiche alors une commande `docker run … --token XXX`.
+**Ne pas la lancer.** Le connecteur est déjà déclaré comme service `tunnel` dans
+`compose.yml` ; on ne récupère que le jeton, à coller dans `.env`.
 
 Toujours dans le tunnel, onglet **Public Hostnames**, ajouter :
 
@@ -108,20 +122,45 @@ Toujours dans le tunnel, onglet **Public Hostnames**, ajouter :
 | Domain | `cinqnotes.com` |
 | Service | `HTTP` → `umami:3000` |
 
-`umami:3000` est le nom du service dans le réseau Docker, pas une adresse de
-l'hôte : les deux conteneurs partagent le même réseau Compose.
+`umami:3000` est le nom du **service Docker**, pas une adresse de l'hôte : il se
+résout parce que `cloudflared` et Umami partagent le réseau Compose. C'est
+précisément ce qui permet de ne publier aucun port. Un `cloudflared` lancé à part
+ne verrait pas ce nom.
 
-Puis, sur le homelab :
+### 5.2 Amener les fichiers sur le homelab
+
+Deux fichiers suffisent : `compose.yml` et un `.env` que l'on crée sur place.
+Le plus simple est de cloner le dépôt — un `git pull` suffira ensuite :
 
 ```sh
-cd infra/umami
+git clone git@github.com:cinqnotes/cinqnotes.git
+cd cinqnotes/infra/umami
+```
+
+Sinon, copier les deux fichiers à la main :
+
+```sh
+scp infra/umami/compose.yml infra/umami/.env.example homelab:~/umami/
+```
+
+### 5.3 Démarrer
+
+```sh
 cp .env.example .env
 openssl rand -base64 24   # → POSTGRES_PASSWORD
 openssl rand -base64 32   # → APP_SECRET
-# coller aussi le TUNNEL_TOKEN
+# coller aussi le TUNNEL_TOKEN de l'étape 5.1
 docker compose up -d
-docker compose logs -f umami
+docker compose ps          # les trois services doivent tourner
+docker compose logs -f tunnel
 ```
+
+Les logs du tunnel doivent afficher `Registered tunnel connection`. Si Umami
+démarre mais que `stats.cinqnotes.com` reste injoignable, c'est le tunnel qu'il
+faut regarder, pas Umami.
+
+`.env` ne doit jamais être versionné : il contient le jeton du tunnel, qui donne
+accès à ton réseau.
 
 Ouvrir `https://stats.cinqnotes.com`. Identifiants par défaut : `admin` /
 `umami`. **Changer le mot de passe immédiatement** — le tunnel rend cette
