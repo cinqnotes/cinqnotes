@@ -147,6 +147,32 @@ test.describe("générateur d'impro", () => {
     await expect(gen.locator("svg")).toBeVisible();
   });
 
+  test("écouter la grille émet l'événement du hook", async ({ page }) => {
+    // `impro_ecoute` répond en trois jours à « le hook est-il lisible ? ».
+    // Sans lui, un visiteur qui improvise deux minutes ressemble à un rebond —
+    // et on brûlerait un canal de distribution sans rien apprendre.
+    const evenements: string[] = [];
+    await page.addInitScript(() => {
+      (window as unknown as { umami: unknown }).umami = {
+        track: (nom: string) => (window as unknown as { __ev: string[] }).__ev.push(nom),
+      };
+      (window as unknown as { __ev: string[] }).__ev = [];
+    });
+
+    await page.goto("/");
+    const gen = page.locator("#generateur .generateur");
+    await expect(gen.getByRole("button", { name: /Jouer la grille/ })).toBeEnabled();
+    await gen.getByRole("button", { name: /Jouer la grille/ }).click();
+
+    evenements.push(...(await page.evaluate(() => (window as unknown as { __ev: string[] }).__ev)));
+    expect(evenements).toContain("impro_ecoute");
+
+    // Arrêter ne doit pas réémettre : on compte des écoutes, pas des clics.
+    await gen.getByRole("button", { name: /Arrêter/ }).click();
+    const apres = await page.evaluate(() => (window as unknown as { __ev: string[] }).__ev);
+    expect(apres.filter((e) => e === "impro_ecoute")).toHaveLength(1);
+  });
+
   test("la page dédiée d'une grille est complète sans JavaScript", async ({ browser }) => {
     const contexte = await browser.newContext({ javaScriptEnabled: false });
     const page = await contexte.newPage();

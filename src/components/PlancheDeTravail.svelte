@@ -3,8 +3,14 @@
   import Metronome from "~/components/Metronome.svelte";
   import { exercice as exercicePar } from "~/content/curriculum/exercices";
   import { JOURS_ORDONNES, PHASE_1, dureeDuJour, jour as jourPar } from "~/content/curriculum/phase1";
-  import { cleDeJourDeSemaine, semaineCourante, serie } from "~/lib/horloge";
-  import { mesurer, mesurerDebutDeSeance } from "~/lib/mesure";
+  import {
+    ancienneteEnJours,
+    cleDeJourDeSemaine,
+    paliersDeRetour,
+    semaineCourante,
+    serie,
+  } from "~/lib/horloge";
+  import { mesurer, mesurerDebutDeSeance, mesurerUneFois } from "~/lib/mesure";
   import {
     ecrire,
     ecrivainDiffere,
@@ -129,7 +135,22 @@
     }
     etat = { ...etat };
     sauver(true);
-    if (serie(joursPratiques(etat)) === 3) mesurer("serie_3");
+
+    const jours = joursPratiques(etat);
+    if (serie(jours) === 3) mesurer("serie_3");
+
+    // Activation réelle : la séance du jour est allée jusqu'au bout, pas
+    // seulement « une case a été cochée ».
+    if (j.done.length === leJour.blocks.length) {
+      mesurer("seance_terminee", { jour: leJour.label, blocs: leJour.blocks.length });
+    }
+
+    // Le chiffre de décision de la phase 1. Émis une seule fois par appareil :
+    // le palier reste vrai à chaque visite suivante, et un utilisateur fidèle
+    // regonflerait sinon le compteur jour après jour.
+    for (const palier of paliersDeRetour(jours)) {
+      mesurerUneFois(`retour_j${palier}`, { jours: ancienneteEnJours(jours) });
+    }
   }
 
   function demarrerBloc(i: number) {

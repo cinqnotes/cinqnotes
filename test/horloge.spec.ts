@@ -5,7 +5,14 @@
  * CLAUDE.md §8 juge prédictif — était fausse pour qui pratique tard le soir.
  */
 import { describe, expect, it } from "vitest";
-import { cleDeDate, cleDeJourDeSemaine, semaineCourante, serie } from "~/lib/horloge";
+import {
+  ancienneteEnJours,
+  cleDeDate,
+  cleDeJourDeSemaine,
+  paliersDeRetour,
+  semaineCourante,
+  serie,
+} from "~/lib/horloge";
 
 describe("clé de date", () => {
   it("rend la date locale, pas la date UTC", () => {
@@ -69,5 +76,53 @@ describe("série de jours", () => {
 
   it("vaut zéro quand rien n'a jamais été fait", () => {
     expect(serie(new Set(), aujourdhui)).toBe(0);
+  });
+});
+
+/**
+ * C'est le chiffre sur lequel se décide le passage en phase 2
+ * (CLAUDE.md §8 phase 1). Il ne se mesure nulle part ailleurs : une audience
+ * sans cookie ne reconnaît pas quelqu'un quinze jours plus tard.
+ */
+describe("retour différé", () => {
+  it("n'existe pas sans pratique", () => {
+    expect(ancienneteEnJours(new Set())).toBeNull();
+    expect(paliersDeRetour(new Set())).toEqual([]);
+  });
+
+  it("vaut zéro pour un seul jour de pratique", () => {
+    expect(ancienneteEnJours(new Set(["2026-08-10"]))).toBe(0);
+    expect(paliersDeRetour(new Set(["2026-08-10"]))).toEqual([]);
+  });
+
+  it("compte l'écart entre la première et la dernière pratique", () => {
+    expect(ancienneteEnJours(new Set(["2026-08-10", "2026-08-17"]))).toBe(7);
+  });
+
+  it("ne dépend pas de la continuité — c'est là qu'il diffère de la série", () => {
+    // Lundi, jeudi, samedi, puis retour à J+14 : la série vaut 1, et pourtant
+    // c'est exactement le profil d'utilisateur que la phase 1 cherche.
+    const jours = new Set(["2026-08-10", "2026-08-13", "2026-08-15", "2026-08-24"]);
+    expect(ancienneteEnJours(jours)).toBe(14);
+    expect(paliersDeRetour(jours)).toEqual([14, 7]);
+    expect(serie(jours, new Date(2026, 7, 24, 20))).toBe(1);
+  });
+
+  it("franchit le palier exactement à J+7 et à J+14", () => {
+    expect(paliersDeRetour(new Set(["2026-08-10", "2026-08-16"]))).toEqual([]);
+    expect(paliersDeRetour(new Set(["2026-08-10", "2026-08-17"]))).toEqual([7]);
+    expect(paliersDeRetour(new Set(["2026-08-10", "2026-08-23"]))).toEqual([7]);
+    expect(paliersDeRetour(new Set(["2026-08-10", "2026-08-24"]))).toEqual([14, 7]);
+  });
+
+  it("résiste au changement d'heure", () => {
+    // Le passage à l'heure d'hiver en Europe tombe fin octobre : un calcul en
+    // millisecondes sur des dates à minuit y perdrait une journée.
+    expect(ancienneteEnJours(new Set(["2026-10-20", "2026-11-03"]))).toBe(14);
+  });
+
+  it("ignore l'ordre d'insertion", () => {
+    const desordre = new Set(["2026-08-24", "2026-08-10", "2026-08-15"]);
+    expect(ancienneteEnJours(desordre)).toBe(14);
   });
 });

@@ -50,3 +50,38 @@ export function serie(jours: Set<string>, aujourdhui: Date = new Date()): number
   }
   return n;
 }
+
+/** Une clé « AAAA-MM-JJ » en Date locale, à midi — à l'abri des heures d'été. */
+function dateDepuisCle(cle: string): Date {
+  const [a, m, j] = cle.split("-").map(Number);
+  return new Date(a!, m! - 1, j!, 12);
+}
+
+/**
+ * Nombre de jours écoulés entre la PREMIÈRE pratique enregistrée et la dernière.
+ * `null` s'il n'y a aucune pratique.
+ *
+ * C'est la mesure de rétention réelle, et elle diffère volontairement de
+ * `serie()` : la série exige des jours consécutifs, alors que la décision de
+ * CLAUDE.md §8 phase 1 porte sur « est-il revenu deux semaines plus tard ».
+ * Quelqu'un qui pratique lundi, jeudi, samedi puis revient à J+14 est
+ * exactement le profil qu'on cherche — et sa série vaut 1.
+ *
+ * Le calcul se fait sur le `localStorage` : c'est le seul endroit qui connaisse
+ * l'historique, une mesure d'audience sans cookie ne pouvant pas reconnaître
+ * quelqu'un quinze jours plus tard. Aucune donnée ne quitte l'appareil (I3).
+ */
+export function ancienneteEnJours(jours: Set<string>): number | null {
+  if (jours.size === 0) return null;
+  const cles = [...jours].sort();
+  const premier = dateDepuisCle(cles[0]!);
+  const dernier = dateDepuisCle(cles[cles.length - 1]!);
+  return Math.round((dernier.getTime() - premier.getTime()) / 86_400_000);
+}
+
+/** Les paliers de retour franchis, du plus grand au plus petit. */
+export function paliersDeRetour(jours: Set<string>): Array<7 | 14> {
+  const age = ancienneteEnJours(jours);
+  if (age === null) return [];
+  return ([14, 7] as const).filter((p) => age >= p);
+}

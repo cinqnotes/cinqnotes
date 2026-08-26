@@ -95,6 +95,17 @@
     };
   });
 
+  /**
+   * L'action la plus importante de la page d'accueil : c'est ici que quelqu'un
+   * entend le produit pour la première fois. Le rapport `impro_ecoute` sur
+   * visiteurs répond en trois jours à « le hook est-il lisible ? », bien avant
+   * que la rétention ne dise quoi que ce soit.
+   */
+  function basculerEcoute() {
+    enLecture = !enLecture;
+    if (enLecture) mesurer("impro_ecoute", { ambiance: idAmbiance, tonalite: tonique });
+  }
+
   function changer(quoi: "ambiance" | "tonalite", valeur: string) {
     if (quoi === "ambiance") idAmbiance = valeur;
     else tonique = Number(valeur) as PitchClass;
@@ -149,7 +160,7 @@
   </div>
 
   <div class="lecture">
-    <button class="bouton principal" onclick={() => (enLecture = !enLecture)}>
+    <button class="bouton principal" onclick={basculerEcoute}>
       {enLecture ? "❚❚ Arrêter" : "▶ Jouer la grille"}
     </button>
     <span class="tempo">{amb.tempo} BPM</span>
