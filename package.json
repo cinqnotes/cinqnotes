@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "verif:sansjs": "vitest run --config vitest.build.config.ts",
-    "og": "node scripts/og.mjs"
+    "og": "node scripts/og.mjs",
+    "icones": "node scripts/icones.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

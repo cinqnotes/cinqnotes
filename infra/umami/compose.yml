@@ -42,6 +42,10 @@ services:
       # Désactive l'appel de télémétrie sortant : on ne mesure pas les autres,
       # on n'a pas de raison de se laisser mesurer.
       DISABLE_TELEMETRY: "1"
+      # Coupe aussi la vérification de mise à jour, qui appelle api.umami.is
+      # depuis le navigateur — visible en erreur CORS dans la console du
+      # tableau de bord, et incohérent avec « aucun tiers ».
+      DISABLE_UPDATES: "1"
     depends_on:
       base:
         condition: service_healthy

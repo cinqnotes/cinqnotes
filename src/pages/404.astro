@@ -1,0 +1,118 @@
+---
+import Base from "~/layouts/Base.astro";
+import { JOURS_ORDONNES, jour, slugDeJour } from "~/content/curriculum/phase1";
+
+/**
+ * Sans cette page, Cloudflare Pages sert la page d'accueil avec un code 200
+ * pour toute URL inconnue. C'est un « soft 404 » : un moteur de recherche
+ * indexe alors n'importe quelle URL erronée comme un doublon de l'accueil, et
+ * un lien mal recopié a l'air de fonctionner. La présence de `dist/404.html`
+ * suffit à ce que Pages réponde un vrai 404.
+ */
+---
+
+<Base
+  titre="Page introuvable"
+  description="Cette page n'existe pas. Voici par où reprendre."
+  chemin="/404"
+>
+  <article class="wrap">
+    <p class="surtitre"><span>Erreur 404</span></p>
+    <h1>Cette page <em>n'existe pas</em></h1>
+    <p class="chapo">
+      Un lien mal recopié, ou une page que j'ai déplacée. Voici les entrées qui
+      fonctionnent.
+    </p>
+
+    <nav aria-label="Reprendre la navigation">
+      <ul class="pistes">
+        <li>
+          <a href="/">Improviser tout de suite</a>
+          <span>Une grille, cinq notes qui ne peuvent pas sonner faux, une contrainte.</span>
+        </li>
+        <li>
+          <a href="/roadmap">La roadmap sur 18 mois</a>
+          <span>Le plan complet, gratuit et public.</span>
+        </li>
+        <li>
+          <a href="/a-propos">À propos</a>
+          <span>Pourquoi un débutant construit cet outil en public.</span>
+        </li>
+      </ul>
+    </nav>
+
+    <h2>La routine, jour par jour</h2>
+    <ul class="jours">
+      {
+        JOURS_ORDONNES.map((j) => (
+          <li>
+            <a href={`/routine/${slugDeJour(j)}`}>{jour(j)!.label}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </article>
+</Base>
+
+<style>
+  article {
+    padding-top: 40px;
+    padding-bottom: 30px;
+  }
+  h1 {
+    margin-top: 6px;
+  }
+  h2 {
+    font-family: var(--titre);
+    font-weight: 400;
+    font-size: 22px;
+    margin: 40px 0 12px;
+  }
+  .chapo {
+    max-width: 60ch;
+  }
+  .pistes {
+    list-style: none;
+    padding: 0;
+    margin: 26px 0 0;
+  }
+  .pistes li {
+    border-top: 1px solid var(--trait);
+    padding: 14px 0;
+  }
+  .pistes li:last-child {
+    border-bottom: 1px solid var(--trait);
+  }
+  .pistes a {
+    font-size: 16px;
+  }
+  .pistes span {
+    display: block;
+    color: var(--poussiere);
+    font-size: 13.5px;
+    margin-top: 3px;
+  }
+  .jours {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .jours a {
+    border: 1px solid var(--trait);
+    border-bottom-color: var(--trait);
+    padding: 8px 12px;
+    display: block;
+    color: var(--ivoire);
+  }
+  .jours a:hover {
+    border-color: var(--laiton);
+    color: var(--laiton);
+  }
+</style>

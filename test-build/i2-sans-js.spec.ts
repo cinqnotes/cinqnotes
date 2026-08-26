@@ -228,6 +228,30 @@ describe("SEO technique", () => {
     expect(lire("/index.html").includes("data-website-id")).toBe(configure);
   });
 
+  it("une page 404 est générée", () => {
+    // Sans `dist/404.html`, Cloudflare Pages sert la page d'accueil avec un
+    // code 200 pour toute URL inconnue. Un moteur de recherche indexe alors
+    // n'importe quelle URL erronée comme un doublon de l'accueil, et un lien
+    // mal recopié a l'air de fonctionner.
+    const html = lire("/404.html");
+    expect(html.length, "dist/404.html est absent").toBeGreaterThan(0);
+    expect(contient(html, "Cette page n'existe pas")).toBe(true);
+  });
+
+  it("les icônes existent et sont déclarées", () => {
+    expect(lire("/favicon.svg").length, "favicon.svg absent").toBeGreaterThan(0);
+    expect(
+      existsSync(new URL("apple-touch-icon.png", DIST)),
+      "apple-touch-icon.png absent — iOS ignore les favicons SVG",
+    ).toBe(true);
+
+    for (const chemin of ["/index.html", "/roadmap/index.html"]) {
+      const html = lire(chemin);
+      expect(html, chemin).toContain('rel="icon"');
+      expect(html, chemin).toContain('rel="apple-touch-icon"');
+    }
+  });
+
   it("les pages légales existent et sont liées depuis chaque page", () => {
     expect(lire("/mentions-legales/index.html").length).toBeGreaterThan(0);
     expect(lire("/confidentialite/index.html").length).toBeGreaterThan(0);

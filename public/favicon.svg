@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Cinq Notes">
+  <!-- Cinq touches — le nom du produit — dont la tonique en rouge feutre :
+       le code couleur exact du clavier de l'application. Formes pleines et
+       largement espacées, pour rester lisibles à 16 pixels dans un onglet. -->
+  <rect width="64" height="64" rx="12" fill="#14100E"/>
+  <g>
+    <rect x="8" y="15" width="8" height="30" rx="2" fill="#A8323C"/>
+    <rect x="18" y="15" width="8" height="30" rx="2" fill="#E9E1D1"/>
+    <rect x="28" y="15" width="8" height="30" rx="2" fill="#E9E1D1"/>
+    <rect x="38" y="15" width="8" height="30" rx="2" fill="#E9E1D1"/>
+    <rect x="48" y="15" width="8" height="30" rx="2" fill="#E9E1D1"/>
+  </g>
+  <rect x="8" y="49" width="48" height="4" rx="2" fill="#C9A227"/>
+</svg>

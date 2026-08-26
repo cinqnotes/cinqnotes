@@ -217,13 +217,21 @@ test.describe("capture e-mail", () => {
     await expect(page.locator(".piege")).toHaveAttribute("aria-hidden", "true");
   });
 
-  // `PUBLIC_EMAIL_ENDPOINT` est vide en local et posé en CI, où les parcours
-  // tournent contre `wrangler pages dev` — donc contre la vraie fonction.
-  // Les deux chemins sont couverts, chacun là où il existe réellement.
-  const endpointCable = Boolean(process.env.PUBLIC_EMAIL_ENDPOINT);
+  /**
+   * L'endpoint est décidé **au build** et inscrit dans `data-endpoint`. On le
+   * lit donc sur la page servie, et non dans l'environnement du processus de
+   * test : les deux peuvent diverger — construire avec la variable puis lancer
+   * les tests sans elle a fait échouer la suite deux fois pour cette seule
+   * raison. La page est la seule source de vérité.
+   */
+  async function endpointCable(page: Page): Promise<boolean> {
+    await page.goto("/");
+    const valeur = await page.locator(".capture form").first().getAttribute("data-endpoint");
+    return Boolean(valeur);
+  }
 
   test("sans endpoint, le formulaire ne prétend pas avoir enregistré", async ({ page }) => {
-    test.skip(endpointCable, "endpoint câblé dans cet environnement");
+    test.skip(await endpointCable(page), "endpoint câblé dans ce build");
     // Le pire comportement possible serait de remercier l'utilisateur alors que
     // rien n'a été conservé : le signal de la phase 1 serait faux, et la
     // personne attendrait un message qui n'arriverait jamais.
@@ -234,7 +242,7 @@ test.describe("capture e-mail", () => {
   });
 
   test("avec endpoint, l'inscription aboutit vraiment", async ({ page }) => {
-    test.skip(!endpointCable, "endpoint non câblé — build local sans variables");
+    test.skip(!(await endpointCable(page)), "endpoint non câblé dans ce build");
     await page.goto("/impro/suspendu-mi");
     await page.locator('.capture input[type="email"]').fill("parcours@exemple.fr");
     await page.locator(".capture button[type=submit]").click();
